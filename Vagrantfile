@@ -86,8 +86,6 @@ Vagrant.configure("2") do |config|
   config.vm.define "trusty64", autostart: false do |trusty64|
     trusty64.vm.box = "ubuntu/trusty64"
     trusty64.vm.hostname = "trusty64"
-    trusty64.vm.network "forwarded_port", guest: 3000, host: 3000
-    trusty64.vm.network "forwarded_port", guest: 3001, host: 3001
     trusty64.vm.provider "virtualbox" do |vb|
       #vb.gui = true
       #vb.memory = "2048"
@@ -109,8 +107,6 @@ Vagrant.configure("2") do |config|
   config.vm.define "xenial64", autostart: false do |xenial64|
     xenial64.vm.box = "ubuntu/xenial64"
     xenial64.vm.hostname = "xenial64"
-    xenial64.vm.network "forwarded_port", guest: 3000, host: 3000
-    xenial64.vm.network "forwarded_port", guest: 3001, host: 3001
     xenial64.vm.provider "virtualbox" do |vb|
       #vb.gui = true
       #vb.memory = "2048"
