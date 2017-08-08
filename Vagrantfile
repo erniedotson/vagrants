@@ -119,7 +119,7 @@ Vagrant.configure("2") do |config|
     xenial64.vm.provision "gui", type: "shell", privileged: true, run: "never", inline: <<-SHELL
       /vagrant/scripts/provision_ubuntu-xenial64_gui.sh
     SHELL
-    xenial64.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh trusty64'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision trusty64 --provision-with gui'."
+    xenial64.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh xenial64'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision xenial64 --provision-with gui'."
   end
 
   #
