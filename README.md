@@ -1,5 +1,18 @@
 # vagrants
 
+<!-- toc -->
+
+- [CentOS 6](#centos-6)
+- [CentOS 7](#centos-7)
+- [CentOS 8](#centos-8)
+- [Ubuntu 14.04 LTS (Trusty Tahr) 64-bit](#ubuntu-1404-lts-trusty-tahr-64-bit)
+- [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
+- [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
+- [Windows 7 64-bit](#windows-7-64-bit)
+- [Windows 10](#windows-10)
+
+<!-- tocstop -->
+
 ## CentOS 6
 
 1. Start the VM: `vagrant up centos6`
@@ -10,25 +23,40 @@
 1. Start the VM: `vagrant up centos7`
 1. SSH in: `vagrant ssh centos7` or `vagrant putty centos7`
 
+## CentOS 8
+
+1. Start the VM: `vagrant up centos8`
+1. SSH in: `vagrant ssh centos8` or `vagrant putty centos8`
+
 ## Ubuntu 14.04 LTS (Trusty Tahr) 64-bit
 
-1. Start the VM: `vagrant up trusty64`
-1. SSH in: `vagrant ssh trusty64` or `vagrant putty trusty64`
+1. Start the VM: `vagrant up ubuntu14`
+1. SSH in: `vagrant ssh ubuntu14` or `vagrant putty ubuntu14`
 
 If you want a GUI Desktop (not recommended):
-1. Install a GUI desktop: `vagrant provision trusty64 --provision-with gui`
+1. Install a GUI desktop: `vagrant provision ubuntu14 --provision-with gui`
 1. Open Oracle VirtualBox Manager 'as an Administrator'.
-1. Right click on the win10 virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
+1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
 
 ## Ubuntu 16.04 LTS (Xenial Xerus) 64-bit
 
-1. Start the VM: `vagrant up xenial64`
-1. SSH in: `vagrant ssh xenial64` or `vagrant putty xenial64`
+1. Start the VM: `vagrant up ubuntu16`
+1. SSH in: `vagrant ssh ubuntu16` or `vagrant putty ubuntu16`
 
 If you want a GUI Desktop (not recommended):
-1. Install a GUI desktop: `vagrant provision xenial64 --provision-with gui`
+1. Install a GUI desktop: `vagrant provision ubuntu16 --provision-with gui`
 1. Open Oracle VirtualBox Manager 'as an Administrator'.
-1. Right click on the win10 virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
+1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
+
+## Ubuntu 18.04 LTS (Bionic Beaver) 64-bit
+
+1. Start the VM: `vagrant up ubuntu18`
+1. SSH in: `vagrant ssh ubuntu18` or `vagrant putty ubuntu18`
+
+If you want a GUI Desktop (not recommended):
+1. Install a GUI desktop: `vagrant provision ubuntu18 --provision-with gui`
+1. Open Oracle VirtualBox Manager 'as an Administrator'.
+1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
 
 ## Windows 7 64-bit
 

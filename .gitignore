@@ -3,3 +3,5 @@
 
 # Log files (if you are creating logs in debug mode, uncomment this)
 # *.logs
+ubuntu-bionic-18.04-cloudimg-console.log
+ubuntu-xenial-16.04-cloudimg-console.log
