@@ -184,6 +184,28 @@ Vagrant.configure("2") do |config|
     ubuntu18.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu18'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu18 --provision-with gui'."
   end
 
+  #############################################################################
+  # Ubuntu 20.04 Focal Fossa
+  #############################################################################
+  config.vm.define "ubuntu20", autostart: false do |ubuntu20|
+    # ubuntu18.vbguest.auto_update = false
+    ubuntu20.vm.box = "ubuntu/focal64"
+    ubuntu20.vm.hostname = "ubuntu20"
+    ubuntu20.vm.provider "virtualbox" do |vb|
+      # vb.gui = true
+      # vb.memory = "2048"
+      # vb.cpus = 2
+      # vb.customize ["modifyvm", :id, "--vram", "256"]
+    end
+    ubuntu20.vm.provision "shell", privileged: true, inline: <<-SHELL
+      /vagrant/scripts/provision_linux.sh
+    SHELL
+    ubuntu20.vm.provision "gui", type: "shell", privileged: true, run: "never", inline: <<-SHELL
+      /vagrant/scripts/provision_linux_gui.sh
+    SHELL
+    ubuntu20.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu20'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu20 --provision-with gui'."
+  end
+
 
   #############################################################################
   # Windows 7 x64

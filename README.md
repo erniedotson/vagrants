@@ -11,6 +11,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Ubuntu 14.04 LTS (Trusty Tahr) 64-bit](#ubuntu-1404-lts-trusty-tahr-64-bit)
   * [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
   * [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
+  * [Ubuntu 20.04 LTS (Focal Fossa) 64-bit](#ubuntu-2004-lts-focal-fossa-64-bit)
   * [Windows 7 64-bit](#windows-7-64-bit)
   * [Windows 10](#windows-10)
 - [Recommended Plugins](#recommended-plugins)
@@ -65,6 +66,18 @@ If you want a GUI Desktop (not recommended):
 
 If you want a GUI Desktop (not recommended):
 1. Install a GUI desktop: `vagrant provision ubuntu18 --provision-with gui`
+1. Open Oracle VirtualBox Manager 'as an Administrator'.
+1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
+
+### Ubuntu 20.04 LTS (Focal Fossa) 64-bit
+
+**NOTE: At time of writing (September 27, 2020) attempts to use this box result in the VM hanging both Vagrant and Virtual Box Manager. This was seen on Windows 10 using Virtual Box 6.1.14r140239 and varant version Vagrant 2.2.9**
+
+1. Start the VM: `vagrant up ubuntu20`
+1. SSH in: `vagrant ssh ubuntu20` or `vagrant putty ubuntu20`
+
+If you want a GUI Desktop (not recommended):
+1. Install a GUI desktop: `vagrant provision ubuntu20 --provision-with gui`
 1. Open Oracle VirtualBox Manager 'as an Administrator'.
 1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
 
