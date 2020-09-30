@@ -1,0 +1,64 @@
+vagrants:
+    centos6:
+        cpus: 1
+        disable_audio: true
+        disksize: 40GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 512
+        videomemory: 16
+    centos7:
+        cpus: 1
+        disable_audio: true
+        disksize: 40GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 512
+        videomemory: 16
+    centos8:
+        cpus: 1
+        disable_audio: true
+        disksize: 10GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 512
+        videomemory: 16
+    ubuntu14:
+        cpus: 1
+        disable_audio: true
+        disksize: 40GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 512
+        videomemory: 12
+    ubuntu16:
+        cpus: 2
+        disable_audio: true
+        disksize: 10GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 1024
+        videomemory: 12
+    ubuntu18:
+        cpus: 2
+        disable_audio: true
+        disksize: 10GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 1024
+        videomemory: 16
+    win10:
+        cpus: 2
+        disable_audio: true
+        disksize: 60GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 2048
+        videomemory: 256

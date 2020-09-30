@@ -1,4 +1,4 @@
-@echo off
+@if "%DEBUG%" == "" (echo off) else (echo on)
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 REM **************************************************************************
 REM Purpose    : Bootstrap Microsoft/EdgeOnWindows10 vagrant
@@ -83,10 +83,71 @@ REM Errorlevel 2 indicates failure to add because user already exists in group
 net localgroup "Remote Desktop Users" %USERDOMAIN%\%USERNAME% /add 2>nul
 if "%errorlevel%"=="2" goto REMOTE_TOOLS_END
 if "%errorlevel%" NEQ "0" ECHO ERROR: Failed to grant current user Remote Desktop Permissions&&GOTO ERR
-
-
 :REMOTE_TOOLS_END
 
+REM **************************************************************************
+REM Reset username and password
+REM **************************************************************************
+
+REM UN/PW that Microsoft used in their box
+SET OLDUSER=IEUser
+REM SET OLDPASS=Passw0rd!
+
+REM What the UN/PW sould be
+SET NEWUSER=vagrant
+SET NEWPASS=vagrant
+
+REM Hostname has not been set by vagrant the first time we run this script. Make
+REM sure it matches the name defined in the Vagrantfile
+SET VAGRANTNAME=win10
+
+REM C:\vagrant folder may not be mounted yet. Safer to map a drive ourselves.
+net use z: \\vboxsvr\vagrant || ( ECHO ERROR: Failed to map drive&&GOTO ERR )
+
+REM Check our breadcrumbs to see if user has been changed
+echo Checking username...
+if exist "Z:\.vagrant\machines\%VAGRANTNAME%\virtualbox\username" goto USER_CHANGE_DONE
+
+echo.
+echo Changing '%OLDUSER%' Fullname to '%NEWUSER%'...
+net user %OLDUSER% /fullname:"%NEWUSER%" || ( ECHO ERROR: Failed to change username&&GOTO ERR )
+
+echo.
+echo Renaming '%OLDUSER%' account to '%NEWUSER%'...
+wmic useraccount where name='%OLDUSER%' rename %NEWUSER% || ( ECHO ERROR: Failed to change account name&&GOTO ERR )
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultUserName /t REG_SZ /d %NEWUSER% /f ||  ( ECHO ERROR: Failed to write account name to registry&&GOTO ERR )
+echo %USERNAME% >"Z:\.vagrant\machines\%VAGRANTNAME%\virtualbox\username" ||  ( ECHO ERROR: Failed to write username breadcrumb&&GOTO ERR )
+
+:USER_CHANGE_DONE
+echo "Username is: %NEWUSER%"
+
+rem See if we need to change the password or not
+echo Checking password...
+if exist "Z:\.vagrant\machines\%VAGRANTNAME%\virtualbox\userpass" goto PASS_CHANGE_DONE
+
+echo.
+echo Seting password for user '%NEWUSER%' to '%NEWPASS%'...
+net user %NEWUSER% %NEWPASS% || ( ECHO ERROR: Failed to change password&&GOTO ERR )
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /t REG_SZ /d %NEWPASS% /f ||  ( ECHO ERROR: Failed to write password to registry&&GOTO ERR )
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_SZ /d "1" /f ||  ( ECHO ERROR: Failed to enable SSO in registry&&GOTO ERR )
+echo %NEWPASS% >"Z:\.vagrant\machines\%VAGRANTNAME%\virtualbox\userpass" || ( ECHO ERROR: Failed to write password breadcrumb&&GOTO ERR )
+
+:PASS_CHANGE_DONE
+net use z: /delete
+echo "Password is: %NEWPASS%"
+
+REM **************************************************************************
+REM Remove OpenSSH
+REM **************************************************************************
+if exist "%PROGRAMFILES%\OpenSSH\uninstall.exe" (
+    echo.
+    echo Removing OpenSSH...
+    "%PROGRAMFILES%\OpenSSH\uninstall.exe" /S || ( ECHO ERROR: Failed to remove OpenSSH&&GOTO ERR )
+)
+
+REM **************************************************************************
+REM Success
+REM **************************************************************************
 echo %SCRIPT_NAME% has completed successfully.
 echo This guest will now be shutdown.
 pause

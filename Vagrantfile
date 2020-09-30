@@ -1,9 +1,42 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+require 'pathname'
+require "open-uri"
+require "fileutils"
+require 'zip'
 
-###############################################################################
+################################################################################
+# Purpose    : Download a file from the web
+# Paramaters : url - the URL to download
+#              path - the path/file to save as
+# Returns    : n/a
+################################################################################
+def download(url, path)
+  case io = open(url)
+  when StringIO then File.open(path, 'w') { |f| f.write(io) }
+  when Tempfile then io.close; FileUtils.mv(io.path, path)
+  end
+end
+
+################################################################################
+# Purpose    : Extract a zip file
+# Paramaters : file - the zip file to extract
+#              destination - the destination to extract to
+# Returns    : n/a
+################################################################################
+def extract_zip(file, destination)
+  FileUtils.mkdir_p(destination)
+
+  Zip::File.open(file) do |zip_file|
+    zip_file.each do |f|
+      fpath = File.join(destination, f.name)
+      zip_file.extract(f, fpath) unless File.exist?(fpath)
+    end
+  end
+end
+################################################################################
 # Ensure running 'As Administrator' on Windows
-###############################################################################
+################################################################################
 if Vagrant::Util::Platform.windows? then
   def running_in_admin_mode?
     (`reg query HKU\\S-1-5-19 2>&1` =~ /ERROR/).nil?
@@ -15,42 +48,142 @@ if Vagrant::Util::Platform.windows? then
   end
 end
 
-###############################################################################
-# Check for required plugins - on 'vagrant up' only
-###############################################################################
-if ARGV[0] == "up"
-  required_plugins = %w( vagrant-reload vagrant-vbguest )
-  required_plugins.each do |plugin|
-    unless Vagrant.has_plugin? plugin
-      puts "Missing required plugin, #{plugin}. To install run command: vagrant plugin install #{plugin}"
-      exit 1
-    end
-  end # required_plugins.each do
+################################################################################
+# Check for arguments
+################################################################################
+$arg_up = false
+$arg_win10 = false
+for i in 0 ... ARGV.length
+  if "#{ARGV[i]}" == "up"
+    arg_up = true
+  end
+  if "#{ARGV[i]}" == "win10"
+    arg_win10 = true
+  end
 end
 
-###############################################################################
+################################################################################
+# Function to check whether VM was already provisioned
+################################################################################
+def provisioned?(vm_name='default', provider='virtualbox')
+  File.exists?(".vagrant/machines/#{vm_name}/#{provider}/action_provision")
+end
+#Usage:  config.ssh.username = 'custom_username' if provisioned?
+
+################################################################################
+# Function to find path to Vagrantfile
+################################################################################
+def getVagrantFilePath()
+  vagrant_dir = Dir.pwd
+  done = false
+  while (!done)
+    if File.exists?(File.join(vagrant_dir, "Vagrantfile"))
+      done = true
+    else
+      tmp = Pathname.new(vagrant_dir).parent.to_s
+      if (vagrant_dir == tmp)
+        # This shouldn't happen. It means we are at the root and didn't find
+        # the Vagrantfile. Just set flag to avoid infinite loop
+        done = true
+      else
+        vagrant_dir = tmp
+      end
+    end
+  end
+  return vagrant_dir
+end
+
+################################################################################
+# Get the path to Vagrantfile
+################################################################################
+vagrantFilePath = getVagrantFilePath
+#puts "vagrantFilePath returned: #{vagrantFilePath}"
+
+################################################################################
+# If we are up'ing win10, download and register the box, if necessary
+################################################################################
+if ( arg_up & arg_win10 )
+  # For more/updated windows boxes, refer to:
+  # https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
+  # Note: Boxes added from file cannot have a box version associated. We
+  #       will append it to the name
+  boxname = "win10-20190311"
+  boxurl = "https://az792536.vo.msecnd.net/vms/VMBuild_20190311/Vagrant/MSEdge/MSEdge.Win10.Vagrant.zip"
+  zipfile = "./MSEdge.Win10.Vagrant.zip"
+  boxfile = "./MSEdge - Win10.box"
+
+  boxlist = `vagrant box list`
+  registered = boxlist.include? boxname
+  if (!registered)
+    if (!File.exists? boxfile)
+      if (!File.exists? zipfile)
+        puts "Downloading #{zipfile}..."
+        download(boxurl, zipfile)
+      # else zipfile already exists
+      end
+      puts "Extracting #{zipfile}..."
+      extract_zip(zipfile, './')
+      File.delete(zipfile)
+    # else boxfile already exists
+    end
+    puts "Registering new vagrant box #{boxfile}..."
+    if (!system("vagrant box add --provider virtualbox #{boxname} \"#{boxfile}\""))
+      exit 1
+    end
+    File.delete(boxfile)
+  end
+  # else win10 box already registered
+end
+
+################################################################################
 # Configure Vagrant
-###############################################################################
+################################################################################
 Vagrant.configure("2") do |config|
 
-  #############################################################################
+  config.vagrant.plugins = [
+    "nugrant",
+    "vagrant-disksize",
+    "vagrant-reload",
+    "vagrant-vbguest"
+  ]
+
+  ##############################################################################
   # CentOS 6
-  #############################################################################
+  ##############################################################################
   config.vm.define "centos6", autostart: false do |centos6|
     centos6.vm.box = "centos/6"
     # Periodically CentOS 'forgets' to install GuestAdditions in their monthly update of box version. Stick to the latest one we know works today.
     # centos6.vm.box_version = "1905.01"
     centos6.vm.hostname = "centos6"
+    # TODO:  centos6.disksize.size = config.user.vagrants.centos6.disksize
     centos6.vm.provider "virtualbox" do |vb|
-      # vb.gui = true
-      # vb.memory = "2048"
-      # vb.cpus = 2
-      # vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.cpus = config.user.vagrants.centos6.cpus
+      if config.user.vagrants.centos6.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.centos6.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.centos6.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.centos6.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.centos6.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.centos6.videomemory}"]
     end
 
     # Problem: centos/6 box results in this error on Windows hosts: "rsync" could not be found on your PATH. Make sure that rsync is properly installed on your system and available on the PATH.
     # Resolution: Force it to use Virtualbox shared folders
     centos6.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+    # centos6.vm.provision "shell", privileged: false, inline: <<-SHELL
+    #   /vagrant/scripts/extend_rootfs.sh
+    # SHELL
     centos6.vm.provision "shell", name: "packages", privileged: false, inline: <<-SHELL
       /vagrant/scripts/provision_linux.sh
     SHELL
@@ -60,26 +193,46 @@ Vagrant.configure("2") do |config|
     centos6.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh centos6'."
   end
 
-  #############################################################################
+
+  ##############################################################################
   # CentOS 7
-  #############################################################################
+  ##############################################################################
   config.vm.define "centos7", autostart: false do |centos7|
     # centos7.vbguest.auto_update = false
     centos7.vm.box = "centos/7"
     # Periodically CentOS 'forgets' to install GuestAdditions in their monthly update of box version. Stick to the latest one we know works today.
     # centos7.vm.box_version = "1706.02"
     centos7.vm.hostname = "centos7"
+    centos7.disksize.size = config.user.vagrants.centos7.disksize
     centos7.vm.provider "virtualbox" do |vb|
-      # vb.gui = true
-      # vb.memory = "2048"
-      # vb.cpus = 2
-      # vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.cpus = config.user.vagrants.centos7.cpus
+      if config.user.vagrants.centos7.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.centos7.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.centos7.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.centos7.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.centos7.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.centos7.videomemory}"]
     end
 
     # Problem: centos/7 box results in this error on Windows hosts: "rsync" could not be found on your PATH. Make sure that rsync is properly installed on your system and available on the PATH.
     # Resolution: Force it to use Virtualbox shared folders
     centos7.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
+    centos7.vm.provision "shell", privileged: false, inline: <<-SHELL
+      /vagrant/scripts/extend_rootfs.sh
+    SHELL
     centos7.vm.provision "shell", inline: <<-SHELL
       /vagrant/scripts/provision_linux.sh
     SHELL
@@ -89,26 +242,45 @@ Vagrant.configure("2") do |config|
     centos7.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh centos7'."
   end
 
-  #############################################################################
+  ##############################################################################
   # CentOS 8
-  #############################################################################
+  ##############################################################################
   config.vm.define "centos8", autostart: false do |centos8|
     # centos8.vbguest.auto_update = false
     centos8.vm.box = "centos/8"
     # Periodically CentOS 'forgets' to install GuestAdditions in their monthly update of box version. Stick to the latest one we know works today.
     # centos8.vm.box_version = "1905.01"
     centos8.vm.hostname = "centos8"
+    centos8.disksize.size = config.user.vagrants.centos8.disksize
     centos8.vm.provider "virtualbox" do |vb|
-      # vb.gui = true
-      # vb.memory = "2048"
-      # vb.cpus = 2
-      # vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.cpus = config.user.vagrants.centos8.cpus
+      if config.user.vagrants.centos8.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.centos8.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.centos8.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.centos8.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.centos8.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.centos8.videomemory}"]
     end
 
-    # Problem: centos/7 box results in this error on Windows hosts: "rsync" could not be found on your PATH. Make sure that rsync is properly installed on your system and available on the PATH.
+    # Problem: centos/8 box results in this error on Windows hosts: "rsync" could not be found on your PATH. Make sure that rsync is properly installed on your system and available on the PATH.
     # Resolution: Force it to use Virtualbox shared folders
     centos8.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
+    centos8.vm.provision "shell", privileged: false, inline: <<-SHELL
+      /vagrant/scripts/extend_rootfs.sh
+    SHELL
     centos8.vm.provision "shell", inline: <<-SHELL
       /vagrant/scripts/provision_linux.sh
     SHELL
@@ -118,19 +290,38 @@ Vagrant.configure("2") do |config|
     centos8.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh centos8'."
   end
 
-  #############################################################################
+  ##############################################################################
   # Ubuntu 14.04 Trusty Tahr
-  #############################################################################
+  ##############################################################################
   config.vm.define "ubuntu14", autostart: false do |ubuntu14|
     # ubuntu14.vbguest.auto_update = false
     ubuntu14.vm.box = "ubuntu/trusty64"
     ubuntu14.vm.hostname = "ubuntu14"
+    ubuntu14.disksize.size = config.user.vagrants.ubuntu14.disksize
     ubuntu14.vm.provider "virtualbox" do |vb|
-      # vb.gui = true
-      # vb.memory = "2048"
-      # vb.cpus = 2
-      # vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.cpus = config.user.vagrants.ubuntu14.cpus
+      if config.user.vagrants.ubuntu14.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.ubuntu14.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.ubuntu14.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.ubuntu14.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.ubuntu14.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu14.videomemory}"]
     end
+    ubuntu14.vm.provision "shell", privileged: false, inline: <<-SHELL
+      /vagrant/scripts/extend_rootfs.sh
+    SHELL
     ubuntu14.vm.provision "shell", privileged: true, inline: <<-SHELL
       /vagrant/scripts/provision_linux.sh
     SHELL
@@ -140,19 +331,38 @@ Vagrant.configure("2") do |config|
     ubuntu14.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu14'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu14 --provision-with gui'."
   end
 
-  #############################################################################
+  ##############################################################################
   # Ubuntu 16.04 Xenial Xerus
-  #############################################################################
+  ##############################################################################
   config.vm.define "ubuntu16", autostart: false do |ubuntu16|
     # ubuntu16.vbguest.auto_update = false
     ubuntu16.vm.box = "ubuntu/xenial64"
     ubuntu16.vm.hostname = "ubuntu16"
+    ubuntu16.disksize.size = config.user.vagrants.ubuntu16.disksize
     ubuntu16.vm.provider "virtualbox" do |vb|
-      # vb.gui = true
-      # vb.memory = "2048"
-      # vb.cpus = 2
-      # vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.cpus = config.user.vagrants.ubuntu16.cpus
+      if config.user.vagrants.ubuntu16.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.ubuntu16.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.ubuntu16.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.ubuntu16.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.ubuntu16.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu16.videomemory}"]
     end
+    ubuntu16.vm.provision "shell", privileged: false, inline: <<-SHELL
+      /vagrant/scripts/extend_rootfs.sh
+    SHELL
     ubuntu16.vm.provision "shell", privileged: true, inline: <<-SHELL
       /vagrant/scripts/provision_linux.sh
     SHELL
@@ -162,19 +372,38 @@ Vagrant.configure("2") do |config|
     ubuntu16.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu16'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu16 --provision-with gui'."
   end
 
-  #############################################################################
+  ##############################################################################
   # Ubuntu 18.04 Bionic Beaver
-  #############################################################################
+  ##############################################################################
   config.vm.define "ubuntu18", autostart: false do |ubuntu18|
     # ubuntu18.vbguest.auto_update = false
     ubuntu18.vm.box = "ubuntu/bionic64"
     ubuntu18.vm.hostname = "ubuntu18"
+    ubuntu18.disksize.size = config.user.vagrants.ubuntu18.disksize
     ubuntu18.vm.provider "virtualbox" do |vb|
-      # vb.gui = true
-      # vb.memory = "2048"
-      # vb.cpus = 2
-      # vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.cpus = config.user.vagrants.ubuntu18.cpus
+      if config.user.vagrants.ubuntu18.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.ubuntu18.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.ubuntu18.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.ubuntu18.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.ubuntu18.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu18.videomemory}"]
     end
+    ubuntu18.vm.provision "shell", privileged: false, inline: <<-SHELL
+      /vagrant/scripts/extend_rootfs.sh
+    SHELL
     ubuntu18.vm.provision "shell", privileged: true, inline: <<-SHELL
       /vagrant/scripts/provision_linux.sh
     SHELL
@@ -184,89 +413,67 @@ Vagrant.configure("2") do |config|
     ubuntu18.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu18'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu18 --provision-with gui'."
   end
 
-
-  #############################################################################
-  # Windows 7 x64
-  #############################################################################
-  config.vm.define "win7", autostart: false do |win7|
-    win7.vm.guest = :windows
-    win7.vm.network :forwarded_port, guest: 5985, host: 5985, host_ip: "127.0.0.1", id: "winrm", auto_correct: true
-    win7.vm.network :forwarded_port, host: 33389, guest: 3389, host_ip: "127.0.0.1", id: "rdp", auto_correct: true
-    win7.windows.set_work_network = true
-    win7.vm.communicator = "winrm"
-    win7.winrm.username = "vagrant"
-    win7.winrm.password = "vagrant"
-    win7.vm.box = "opentable/win-7-professional-amd64-nocm" # UAC disabled, Requires install of deprecated plugin vagrant-windows OR modifiction of box Vagrantfile to
-    win7.vm.synced_folder ".", "/vagrant"
-    win7.vm.hostname = "win7"
-    win7.vm.provider "virtualbox" do |vb|
-      # Display the VirtualBox GUI when booting the machine
-      vb.gui = false
-
-      # Customize the amount of memory on the VM:
-      vb.memory = "3072"
-
-      # Increase number of CPUs
-      vb.cpus = 2
-
-      # If using a GUI Desktop, increase video memory
-      vb.customize ["modifyvm", :id, "--vram", "256"]
-    end
-
-    win7.vm.provision "shell", privileged: true, inline: <<-SHELL
-      cmd.exe /c \\vagrant\\scripts\\provision_win7.cmd
-    SHELL
-
-    # Reboot required after installing .Net Framework (installed by Chocolatey)
-    win7.vm.provision :reload
-
-    # Continue provisioning...
-    win7.vm.provision "shell", privileged: true, inline: <<-SHELL
-      cmd.exe /c \\vagrant\\scripts\\provision_win7.cmd
-    SHELL
-
-    # Reboot required after installing kb2534366, kb2454826, kb2533552  (pre-req for SP1, KB976932)
-    win7.vm.provision :reload
-
-    # Continue provisioning...
-    #win7.vm.provision "shell", privileged: true, inline: <<-SHELL
-    #  cmd.exe /c \\vagrant\\scripts\\provision_win7.cmd
-    #SHELL
-
-    # Reboot required after installing xxx  (pre-req for SP1, KB976932)
-    #win7.vm.provision :reload
-
-    # Continue provisioning...
-    #win7.vm.provision "shell", privileged: true, inline: <<-SHELL
-    #  cmd.exe /c \\vagrant\\scripts\\provision_win7.cmd
-    #SHELL
-
-    win7.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win7' or 'vagrant rdp win7' and using uername 'vagrant' and password 'vagrant'."
-  end
-
-  #############################################################################
+  ##############################################################################
   # Win10
-  #############################################################################
+  ##############################################################################
   config.vm.define "win10", autostart: false do |win10|
-    win10.vm.box = "Microsoft/EdgeOnWindows10"
+    # win10.vm.box = "Microsoft/EdgeOnWindows10"
+    win10.vm.box = "win10-20190311"
     win10.vm.guest = :windows
     win10.vm.network :forwarded_port, guest: 5985, host: 5985, host_ip: "127.0.0.1", id: "winrm", auto_correct: true
     win10.vm.network :forwarded_port, host: 33389, guest: 3389, host_ip: "127.0.0.1", id: "rdp", auto_correct: true
     win10.vm.hostname = "win10"
+    win10.disksize.size = config.user.vagrants.win10.disksize
     win10.vm.provider "virtualbox" do |vb|
-      # vb.gui = true
-      vb.memory = "4096"
-      vb.cpus = 2
-      vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.cpus = config.user.vagrants.win10.cpus
+      if config.user.vagrants.win10.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.win10.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.win10.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.win10.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.win10.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.win10.videomemory}"]
     end
 
     # Use Windows Remote Management instead of default SSH connections
     win10.vm.communicator = "winrm"
-    win10.winrm.username = "IEUser"
-    win10.winrm.password = "Passw0rd!"
+    # Note: Provision script will change the UN/PW in the to vagrant/vagrant
+    #       and leave a breadcrumb indicating so. Check for that breadcrumb
+    #       and determine which UN/PW to use.
+    if (File.exist?(File.join(vagrantFilePath, '.vagrant/machines/win10/virtualbox/username')))
+      win10.winrm.username = "vagrant"
+    else
+      win10.winrm.username = "IEUser"
+    end
+    if (File.exist?(File.join(vagrantFilePath, '.vagrant/machines/win10/virtualbox/userpass')))
+      win10.winrm.password = "vagrant"
+    else
+      win10.winrm.password = "Passw0rd!"
+    end
 
     win10.vm.provision "shell", privileged: true, inline: <<-SHELL
+      # $env:DEBUG=1
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
+    SHELL
+    win10.vm.provision "shell", privileged: true, inline: <<-SHELL
+    # $env:DEBUG=1
       cmd.exe /c \\vagrant\\scripts\\provision_win10.cmd
+    SHELL
+
+    win10.vm.provision "extendfs", type: "shell", run: "never", privileged: true, inline: <<-SHELL
+      # $env:DEBUG=1
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
     SHELL
 
     win10.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win10' or 'vagrant rdp win10' and using uername 'IEUser' and password 'Passw0rd!'."
