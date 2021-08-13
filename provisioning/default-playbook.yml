@@ -8,38 +8,3 @@
       path: $HOME/.bashrc
       regexp: '^LS_COLORS='
       line: export LS_COLORS="ow=01;36;40"
-
-# This is needed for bento/ubuntu-20.04 box
-# It is not necessary for ubuntu/focal64 box
-- name: Resize disk
-  hosts: none
-  gather_facts: false
-  tasks:
-  - name: Read device information (always use unit when probing)
-    become: true
-    community.general.parted: device=/dev/sda unit=MiB
-    register: sda_info
-  # - name: Extend the last partition to fill all available space
-  #   become: true
-  #   community.general.parted:
-  #     device: /dev/sda
-  #     number: "{{ sda_info.partitions[sda_info.partitions | length -1].num }}"
-  #     part_end: "100%"
-  #     resize: true
-  #     state: present
-  - name: Extend sda2 Extended partition
-    become: true
-    community.general.parted:
-      device: /dev/sda
-      number: 2
-      part_end: "100%"
-      resize: true
-      state: present
-  - name: Extend sda5 LVM partition
-    become: true
-    community.general.parted:
-      device: /dev/sda
-      number: 5
-      part_end: "100%"
-      resize: true
-      state: present

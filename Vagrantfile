@@ -135,6 +135,19 @@ if ( arg_up & arg_win10 )
   # else win10 box already registered
 end
 
+# Refrence: https://github.com/martinandersson/dev-mini/blob/master/Vagrantfile
+
+VMCONFIGURATION = {
+  name: 'ubuntu16',
+  box: 'ubuntu/xenial64',
+}, {
+  name: 'ubuntu18',
+  box: 'ubuntu/bionic64',
+}, {
+  name: 'ubuntu20',
+  box: 'ubuntu/focal64',
+}
+
 ################################################################################
 # Configure Vagrant
 ################################################################################
@@ -335,133 +348,52 @@ Vagrant.configure("2") do |config|
   end
 
   ##############################################################################
-  # Ubuntu 16.04 Xenial Xerus
+  # Loop through our VM configurations
   ##############################################################################
-  config.vm.define "ubuntu16", autostart: false do |ubuntu16|
-    # ubuntu16.vbguest.auto_update = false
-    ubuntu16.vm.box = "ubuntu/xenial64"
-    ubuntu16.vm.hostname = "ubuntu16"
-    ubuntu16.disksize.size = config.user.vagrants.ubuntu16.disksize
-    ubuntu16.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.ubuntu16.cpus
-      if config.user.vagrants.ubuntu16.disable_audio
-        # Disable audio card to avoid interference with host audio
-        vb.customize ["modifyvm", :id, "--audio", "none"]
-      end
-      if config.user.vagrants.ubuntu16.enable_clipboard
-        # Enable bidirectional Clipboard
-        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
-      end
-      if config.user.vagrants.ubuntu16.enable_draganddrop
-        # Enable bidirectional file drag and drop
-        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
-      end
-      vb.gui = config.user.vagrants.ubuntu16.gui
-      #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.ubuntu16.memory}"
+  VMCONFIGURATION.each do |vmconfig|
+    config.vm.define "#{vmconfig[:name]}", autostart: false do |config|
+      # config.vbguest.auto_update = false
+      config.vm.box = "#{vmconfig[:box]}"
+      config.vm.hostname = "#{vmconfig[:name]}"
+      config.disksize.size = eval("config.user.vagrants.#{vmconfig[:name]}.disksize")
+      config.vm.provider "virtualbox" do |vb|
+        vb.cpus = eval("config.user.vagrants.#{vmconfig[:name]}.cpus")
+        if eval("config.user.vagrants.#{vmconfig[:name]}.disable_audio")
+          # Disable audio card to avoid interference with host audio
+          vb.customize ["modifyvm", :id, "--audio", "none"]
+        end
+        if eval("config.user.vagrants.#{vmconfig[:name]}.enable_clipboard")
+          # Enable bidirectional Clipboard
+          vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+        end
+        if eval("config.user.vagrants.#{vmconfig[:name]}.enable_draganddrop")
+          # Enable bidirectional file drag and drop
+          vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+        end
+        vb.gui = eval("config.user.vagrants.#{vmconfig[:name]}.gui")
+        #vb.memory = "2048"
+        vb.memory = "#{eval("config.user.vagrants.#{vmconfig[:name]}.memory")}"
 
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu16.videomemory}"]
+        #vb.customize ["modifyvm", :id, "--vram", "256"]
+        vb.customize ["modifyvm", :id, "--vram", "#{eval("config.user.vagrants.#{vmconfig[:name]}.videomemory")}"]
+      end
+      config.vm.provision "ansible_local" do |ansible|
+        # ansible.verbose = "vvv"
+        ansible.playbook = "provisioning/default-playbook.yml"
+        ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
+        ansible.galaxy_role_file = 'provisioning/requirements.yml'
+        ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
+      end
+      config.vm.provision :reload
+      config.vm.provision "gui", type: "ansible_local", run: "never" do |ansible|
+        # ansible.verbose = "vvv"
+        ansible.playbook = "provisioning/gui-playbook.yml"
+        ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
+        ansible.galaxy_role_file = 'provisioning/requirements.yml'
+        ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
+      end
+      config.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh #{vmconfig[:name]}'."
     end
-    ubuntu16.vm.provision "shell", privileged: false, inline: <<-SHELL
-      /vagrant/scripts/extend_rootfs.sh
-    SHELL
-    ubuntu16.vm.provision "shell", privileged: true, inline: <<-SHELL
-      /vagrant/scripts/provision_linux.sh
-    SHELL
-    ubuntu16.vm.provision "gui", type: "shell", privileged: true, run: "never", inline: <<-SHELL
-      /vagrant/scripts/provision_linux_gui.sh
-    SHELL
-    ubuntu16.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu16'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu16 --provision-with gui'."
-  end
-
-  ##############################################################################
-  # Ubuntu 18.04 Bionic Beaver
-  ##############################################################################
-  config.vm.define "ubuntu18", autostart: false do |ubuntu18|
-    # ubuntu18.vbguest.auto_update = false
-    ubuntu18.vm.box = "ubuntu/bionic64"
-    ubuntu18.vm.hostname = "ubuntu18"
-    ubuntu18.disksize.size = config.user.vagrants.ubuntu18.disksize
-    ubuntu18.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.ubuntu18.cpus
-      if config.user.vagrants.ubuntu18.disable_audio
-        # Disable audio card to avoid interference with host audio
-        vb.customize ["modifyvm", :id, "--audio", "none"]
-      end
-      if config.user.vagrants.ubuntu18.enable_clipboard
-        # Enable bidirectional Clipboard
-        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
-      end
-      if config.user.vagrants.ubuntu18.enable_draganddrop
-        # Enable bidirectional file drag and drop
-        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
-      end
-      vb.gui = config.user.vagrants.ubuntu18.gui
-      #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.ubuntu18.memory}"
-
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu18.videomemory}"]
-    end
-    ubuntu18.vm.provision "shell", privileged: false, inline: <<-SHELL
-      /vagrant/scripts/extend_rootfs.sh
-    SHELL
-    ubuntu18.vm.provision "shell", privileged: true, inline: <<-SHELL
-      /vagrant/scripts/provision_linux.sh
-    SHELL
-    ubuntu18.vm.provision "gui", type: "shell", privileged: true, run: "never", inline: <<-SHELL
-      /vagrant/scripts/provision_linux_gui.sh
-    SHELL
-    ubuntu18.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu18'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu18 --provision-with gui'."
-  end
-
-  ##############################################################################
-  # Ubuntu 20.04 Focal Fossa
-  ##############################################################################
-  config.vm.define "ubuntu20", autostart: false do |ubuntu20|
-    # ubuntu20.vbguest.auto_update = false
-    # ubuntu20.vm.box = "bento/ubuntu-20.04"
-    ubuntu20.vm.box = "ubuntu/focal64"
-    ubuntu20.vm.hostname = "ubuntu20"
-    ubuntu20.disksize.size = config.user.vagrants.ubuntu20.disksize
-    ubuntu20.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.ubuntu20.cpus
-      if config.user.vagrants.ubuntu20.disable_audio
-        # Disable audio card to avoid interference with host audio
-        vb.customize ["modifyvm", :id, "--audio", "none"]
-      end
-      if config.user.vagrants.ubuntu20.enable_clipboard
-        # Enable bidirectional Clipboard
-        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
-      end
-      if config.user.vagrants.ubuntu20.enable_draganddrop
-        # Enable bidirectional file drag and drop
-        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
-      end
-      vb.gui = config.user.vagrants.ubuntu20.gui
-      #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.ubuntu20.memory}"
-
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu20.videomemory}"]
-    end
-    ubuntu20.vm.provision "ansible_local" do |ansible|
-      # ansible.verbose = "vvv"
-      ansible.playbook = "provisioning/default-playbook.yml"
-      ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
-      ansible.galaxy_role_file = 'provisioning/requirements.yml'
-      ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
-    end
-    ubuntu20.vm.provision :reload
-    ubuntu20.vm.provision "gui", type: "ansible_local", run: "never" do |ansible|
-      # ansible.verbose = "vvv"
-      ansible.playbook = "provisioning/gui-playbook.yml"
-      ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
-      ansible.galaxy_role_file = 'provisioning/requirements.yml'
-      ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
-    end
-    ubuntu20.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu20'."
   end
 
   ##############################################################################

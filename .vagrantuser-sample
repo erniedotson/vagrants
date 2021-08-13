@@ -43,7 +43,7 @@ vagrants:
         enable_draganddrop: false
         gui: false
         memory: 1024
-        videomemory: 12
+        videomemory: 16
     ubuntu18:
         cpus: 2
         disable_audio: true
