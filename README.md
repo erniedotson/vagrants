@@ -2,83 +2,66 @@
 
 I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development or just quick tests where I don't want to pollute my workstation with temporary software.
 
+<!-- markdownlint-disable MD004 -->
+
 <!-- toc -->
 
 - [Getting Started](#getting-started)
+  * [Install pre-requisites](#install-pre-requisites)
+  * [Quick Start](#quick-start)
 - [Vagrants](#vagrants)
-  * [CentOS 6](#centos-6)
-  * [CentOS 7](#centos-7)
-  * [CentOS 8](#centos-8)
-  * [Ubuntu 14.04 LTS (Trusty Tahr) 64-bit](#ubuntu-1404-lts-trusty-tahr-64-bit)
-  * [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
-  * [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
-  * [Windows 10](#windows-10)
+  * [Windows 10 Vagrant Notes](#windows-10-vagrant-notes)
+- [Customizing the vagrant VM](#customizing-the-vagrant-vm)
+  * [Adding a Desktop GUI](#adding-a-desktop-gui)
 - [Recommended Plugins](#recommended-plugins)
   * [Nugrant plugin](#nugrant-plugin)
   * [Vagrant Multi-PuTTY plugin](#vagrant-multi-putty-plugin)
   * [Vagrant Reload plugin](#vagrant-reload-plugin)
   * [Vagrant VBGuest plugin](#vagrant-vbguest-plugin)
+- [Troubleshooting](#troubleshooting)
+  * [Nugrant: Parameter 'vagrants' was not found](#nugrant-parameter-vagrants-was-not-found)
+  * [Error installing Guest Additions followed by error mounting /vagrant directory](#error-installing-guest-additions-followed-by-error-mounting-vagrant-directory)
 - [References](#references)
 
 <!-- tocstop -->
 
+<!-- markdownlint-enable MD004 -->
+
 ## Getting Started
 
+### Install pre-requisites
+
+Care has been taken to write everything in a platform-independent way, but development is done primarily on Windows inside of Git Bash. If something doensn't work quite right, try that environment.
+
+- Install VirtualBox
+- Install VirtualBox Extension Pack
+- Ensure the version matches the version of VirtualBox
+- Install Vagrant
+
+### Quick Start
+
 1. Clone the repo: `git clone https://github.com/erniedotson/vagrants.git`
-1. Copy *.vagrantuser-sample* to *.vagrantuser*: `cp .vagrantuser-sample to .vagrantuser`
-1. *(Optional)* Modify *.vagrantuser* file to customize vagrant options such as cpus, memory, or disk size
-1. Run vagrant: `vagrant status`
+1. Copy *.vagrantuser-sample* to *.vagrantuser*
+1. Run vagrant status to get a list of *vagrant-name*s: `vagrant status`
+1. Vagrant up your OS of choice: `vagrant up <vagrant-name>`
+1. See table below for info on the Vagrants provided
 
 ## Vagrants
 
-### CentOS 6
+| Vagrant Name | Vagrant Box | Description |
+| ------------ | ----------- | ----------- |
+| centos6 | [centos/6](https://app.vagrantup.com/generic/boxes/centos6) | CentOS 6 |
+| centos7 | [centos/7](https://app.vagrantup.com/generic/boxes/centos7) | CentOS 7 |
+| centos8 | [centos/8](https://app.vagrantup.com/generic/boxes/centos8) | CentOS 8 |
+| ubuntu14 | [ubuntu/trusty64](https://app.vagrantup.com/ubuntu/boxes/trusty64/versions/14.04) | Ubuntu 14.04 LTS (Trusty Tahr) 64-bit |
+| ubuntu16 | [ubuntu/xenial64](https://app.vagrantup.com/ubuntu/boxes/xenial64) | Ubuntu 16.04 LTS (Xenial Xerus) 64-bit |
+| ubuntu18 | [ubuntu/bionic64](https://app.vagrantup.com/ubuntu/boxes/bionic64) | Ubuntu 18.04 LTS (Bionic Beaver) 64-bit |
+| ubuntu20 | [ubuntu/focal64](https://app.vagrantup.com/ubuntu/boxes/focal64) | Ubuntu 20.04 LTS (Focal Fossa) 64-bit |
+| win10 | [Microsoft's Edge Developer Windows 10 vagrant image](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/) | Windows 10 |
 
-1. Start the VM: `vagrant up centos6`
-1. SSH in: `vagrant ssh centos6` or `vagrant putty centos6`
+### Windows 10 Vagrant Notes
 
-### CentOS 7
-
-1. Start the VM: `vagrant up centos7`
-1. SSH in: `vagrant ssh centos7` or `vagrant putty centos7`
-
-### CentOS 8
-
-1. Start the VM: `vagrant up centos8`
-1. SSH in: `vagrant ssh centos8` or `vagrant putty centos8`
-
-### Ubuntu 14.04 LTS (Trusty Tahr) 64-bit
-
-1. Start the VM: `vagrant up ubuntu14`
-1. SSH in: `vagrant ssh ubuntu14` or `vagrant putty ubuntu14`
-
-If you want a GUI Desktop (not recommended):
-1. Install a GUI desktop: `vagrant provision ubuntu14 --provision-with gui`
-1. Open Oracle VirtualBox Manager 'as an Administrator'.
-1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
-
-### Ubuntu 16.04 LTS (Xenial Xerus) 64-bit
-
-1. Start the VM: `vagrant up ubuntu16`
-1. SSH in: `vagrant ssh ubuntu16` or `vagrant putty ubuntu16`
-
-If you want a GUI Desktop (not recommended):
-1. Install a GUI desktop: `vagrant provision ubuntu16 --provision-with gui`
-1. Open Oracle VirtualBox Manager 'as an Administrator'.
-1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
-
-### Ubuntu 18.04 LTS (Bionic Beaver) 64-bit
-
-1. Start the VM: `vagrant up ubuntu18`
-1. SSH in: `vagrant ssh ubuntu18` or `vagrant putty ubuntu18`
-
-If you want a GUI Desktop (not recommended):
-1. Install a GUI desktop: `vagrant provision ubuntu18 --provision-with gui`
-1. Open Oracle VirtualBox Manager 'as an Administrator'.
-1. Right click on the virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine.
-
-### Windows 10
-
-On or around April 10, 2020, it seems that the official `Microsoft/EdgeOnWindows10` box has been moved or removed from it's Azure cloud storage location. It remains unavailable as of writing (September 28, 2020). If you do not already have this box in your local vagrant box cache, you will get a 404 error attempting to download.
+On or around April 10, 2020, it seems that the official [Microsoft/EdgeOnWindows10](https://app.vagrantup.com/Microsoft/boxes/EdgeOnWindows10) box has been moved or removed from it's Azure cloud storage location. It remains unavailable as of writing (September 28, 2020). If you do not already have this box in your local vagrant box cache, you will get a 404 error attempting to download.
 
 Instead, this `win10` vagrant will download [Microsoft's Edge Developer Windows 10 vagrant image](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/) and import it into the vagrant box list.
 
@@ -93,6 +76,46 @@ Instead, this `win10` vagrant will download [Microsoft's Edge Developer Windows 
     1. *Optional:* **On the host**: Close the VirtualBox Manager window.
 1. Perform another `vagrant up win10` command and this time vagrant will begin provisioning the guest.
 1. `vagrant rdp win10` to connect, etc. etc. Use username, *vagrant*, and password, *vagrant*.
+
+## Customizing the vagrant VM
+
+The *.vagrantuser* file contains parameters for customizing each vagrant. You can modify this file to increase CPUs, RAM, or disk size, or more. Once you modify the *.vagrantuser* file you should re-run the provisioners by doing the following:
+
+```bash
+vagrant halt <vagrant-name>
+vagrant up <vagrant-name> --provision
+```
+
+### Adding a Desktop GUI
+
+By default these vagrants are designed to be used *headless* and therefore most do not have a Desktop GUI installed and are set to hide the Console Window when they boot up.
+
+To add a Desktop GUI first bring the vagrant up in it's default headless state. Then perform the following:
+
+Change the appropriate `gui: false` entry in the *.vagrantuser* file to `gui: true` to inform Virtualbox to display the console window when the VM boots.
+
+Increase the `videomemory` option in the *.vagrantuser* file. Many are set to use 4 MB of video memory which just isn't enough for a Desktop GUI. I recommend bumping this up to 128 or 256 MB.
+
+Example of chages below:
+
+```diff
+    ubuntu20:
+        cpus: 2
+        disable_audio: true
+        disksize: 64GB
+        enable_clipboard: false
+        enable_draganddrop: false
+-       gui: false
++       gui: true
+        memory: 1024
+-       videomemory: 4
++       videomemory: 256
+```
+
+Once you've made changes to the *.vagrantuser* file, you can install the
+Desktop GUI by running `vagrant provision <vagrant-name> --provision-with gui`
+
+Once that installs the Desktop GUI, it will likely take one more reboot for the GUI to be enabled: `vagrant reload <vagrant-name>`
 
 ## Recommended Plugins
 
@@ -114,6 +137,79 @@ If you are on a Windows host, [Vagrant Multi-PuTTY plugin](https://github.com/ni
 
 *TIP:* Make sure on your host that your Guest Additions Extension Pack version matches the version of Virtual Box installed, otherwise you may see strange behavior when attempting to boot a guest vagrant.
 
+## Troubleshooting
+
+### Nugrant: Parameter 'vagrants' was not found
+
+**PROBLEM:** On any/all `vagrant` commands you see an error message smilar to this:
+
+```text
+Vagrant failed to initialize at a very early stage:
+
+There was an error loading a Vagrantfile. The file being loaded
+and the error message are shown below. This is usually caused by
+a syntax error.
+
+Path: <provider config: virtualbox>
+Line number: 18
+Message: Nugrant::Vagrant::Errors::ParameterNotFoundError: Nugrant: Parameter 'vagrants' was not found, is it defined in
+your .vagrantuser file? Here where we think the error
+could be in your Vagrantfile:
+```
+
+**CAUSE:** This is casued by the Nugrant plugin failing to load values from the *.vagrantuser* file.
+
+**SOLUTION:** To resolve, copy *.vagrantuser-sample* to *.vagrantuser*
+
+### Error installing Guest Additions followed by error mounting /vagrant directory
+
+**PROBLEM:** On a `vagrant up` command you may see a message similar to the following:
+
+```text
+VirtualBox Guest Additions: Building the VirtualBox Guest Additions kernel
+modules.  This may take a while.
+VirtualBox Guest Additions: To build modules for other installed kernels, run
+VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup <version>
+VirtualBox Guest Additions: or
+VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup all
+VirtualBox Guest Additions: Kernel headers not found for target kernel
+5.4.0-80-generic. Please install them and execute
+  /sbin/rcvboxadd setup
+VirtualBox Guest Additions: Running kernel modules will not be replaced until
+the system is restarted
+Restarting VM to apply changes...
+==> ubuntu20: Attempting graceful shutdown of VM...
+==> ubuntu20: Booting VM...
+==> ubuntu20: Waiting for machine to boot. This may take a few minutes...
+==> ubuntu20: Machine booted and ready!
+==> ubuntu20: Checking for guest additions in VM...
+==> ubuntu20: Setting hostname...
+==> ubuntu20: Mounting shared folders...
+    ubuntu20: /vagrant => E:/work/my/vagrants
+Vagrant was unable to mount VirtualBox shared folders. This is usually
+because the filesystem "vboxsf" is not available. This filesystem is
+made available via the VirtualBox Guest Additions and kernel module.
+Please verify that these guest additions are properly installed in the
+guest. This is not a bug in Vagrant and is usually caused by a faulty
+Vagrant box. For context, the command attempted was:
+
+mount -t vboxsf -o uid=1000,gid=1000,_netdev vagrant /vagrant
+
+The error output from the command was:
+
+: Invalid argument
+```
+
+**CAUSE:** This is caused because by the *VirtualBox Guest Additions* are not present in the guest VM but they are required to share folders between the host and the guest. The *vagrant-vbguest* plugin attempts to install the *VirtualBox Guest Additions* but fails to do so because the necessary packages are not present on the guest VM.
+
+**SOLUTION:** To resolve the issue you need to install the necessary packages.
+
+```bash
+# To resolve for Ubuntu 20.04
+vagrant ssh ubuntu20 -c 'sudo apt-get -y install build-essential linux-headers-`uname -r` dkms'
+vagrant reload ubuntu20 --provision
+```
+
 ## References
 
 - [Vagrant](https://www.vagrantup.com/) - Development Environments Made Easy
@@ -122,3 +218,4 @@ If you are on a Windows host, [Vagrant Multi-PuTTY plugin](https://github.com/ni
 - [Vagrant Multi-PuTTY plugin](https://github.com/nickryand/vagrant-multi-putty) - This plugin allows you to use putty to ssh into VMs.
 - [Vagrant Reload plugin](https://github.com/aidanns/vagrant-reload) - "Reload a VM as a provisioning step."
 - [Vagrant VBGuest plugin](https://github.com/dotless-de/vagrant-vbguest) - automatically update VirtualBox guest additions if necessary
+- [VirtualBox](https://www.virtualbox.org) - VirtualBox is a general-purpose full virtualizer for x86 hardware

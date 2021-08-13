@@ -1,0 +1,12 @@
+---
+- name: Install GUI
+  hosts: ubuntu*
+  tasks:
+  - name: Install Ubuntu Desktop
+    become: true
+    ansible.builtin.package:
+      name: ubuntu-desktop
+      state: present
+  - name: Initialize graphical mode
+    become: true
+    command: "init 5"
