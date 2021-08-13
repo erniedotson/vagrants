@@ -8,3 +8,13 @@
       path: $HOME/.bashrc
       regexp: '^LS_COLORS='
       line: export LS_COLORS="ow=01;36;40"
+
+# TODO: Resolve this warning:
+
+# [DEPRECATION WARNING]: Distribution Ubuntu 18.04 on host ubuntu18 should use
+# /usr/bin/python3, but is using /usr/bin/python for backward compatibility with
+# prior Ansible releases. A future Ansible release will default to using the
+# discovered platform python for this host. See https://docs.ansible.com/ansible/
+# 2.9/reference_appendices/interpreter_discovery.html for more information. This
+# feature will be removed in version 2.12. Deprecation warnings can be disabled
+# by setting deprecation_warnings=False in ansible.cfg.

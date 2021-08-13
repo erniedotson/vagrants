@@ -1,12 +1,22 @@
 ---
 - name: Install GUI
-  hosts: ubuntu*
+  hosts: all
   tasks:
-  - name: Install Ubuntu Desktop
+
+  - name: Install Desktop for Ubuntu 20.04/18.04/16.04/14.04
     become: true
     ansible.builtin.package:
       name: ubuntu-desktop
       state: present
+    when: ansible_facts['os_family'] == "Debian"
+
+  - name: Install the 'Gnome desktop' environment group for Centos 8/7
+    become: true
+    yum:
+      name: "@gnome-desktop"
+      state: present
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int >= 7
+
   - name: Initialize graphical mode
     become: true
     command: "init 5"
