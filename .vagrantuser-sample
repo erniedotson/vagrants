@@ -53,6 +53,15 @@ vagrants:
         gui: false
         memory: 1024
         videomemory: 16
+    ubuntu20:
+        cpus: 2
+        disable_audio: true
+        disksize: 64GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 1024
+        videomemory: 4
     win10:
         cpus: 2
         disable_audio: true

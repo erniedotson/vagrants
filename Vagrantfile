@@ -147,6 +147,9 @@ Vagrant.configure("2") do |config|
     "vagrant-vbguest"
   ]
 
+  # Enable SSH Agent Forwarding
+  config.ssh.forward_agent = true
+
   ##############################################################################
   # CentOS 6
   ##############################################################################
@@ -411,6 +414,54 @@ Vagrant.configure("2") do |config|
       /vagrant/scripts/provision_linux_gui.sh
     SHELL
     ubuntu18.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu18'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu18 --provision-with gui'."
+  end
+
+  ##############################################################################
+  # Ubuntu 20.04 Focal Fossa
+  ##############################################################################
+  config.vm.define "ubuntu20", autostart: false do |ubuntu20|
+    # ubuntu20.vbguest.auto_update = false
+    # ubuntu20.vm.box = "bento/ubuntu-20.04"
+    ubuntu20.vm.box = "ubuntu/focal64"
+    ubuntu20.vm.hostname = "ubuntu20"
+    ubuntu20.disksize.size = config.user.vagrants.ubuntu20.disksize
+    ubuntu20.vm.provider "virtualbox" do |vb|
+      vb.cpus = config.user.vagrants.ubuntu20.cpus
+      if config.user.vagrants.ubuntu20.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.ubuntu20.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.ubuntu20.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.ubuntu20.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.ubuntu20.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu20.videomemory}"]
+    end
+    ubuntu20.vm.provision "ansible_local" do |ansible|
+      # ansible.verbose = "vvv"
+      ansible.playbook = "provisioning/default-playbook.yml"
+      ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
+      ansible.galaxy_role_file = 'provisioning/requirements.yml'
+      ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
+    end
+    ubuntu20.vm.provision :reload
+    ubuntu20.vm.provision "gui", type: "ansible_local", run: "never" do |ansible|
+      # ansible.verbose = "vvv"
+      ansible.playbook = "provisioning/gui-playbook.yml"
+      ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
+      ansible.galaxy_role_file = 'provisioning/requirements.yml'
+      ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
+    end
+    ubuntu20.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu20'."
   end
 
   ##############################################################################
