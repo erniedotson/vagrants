@@ -9,8 +9,15 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
 - [Getting Started](#getting-started)
   * [Install pre-requisites](#install-pre-requisites)
   * [Quick Start](#quick-start)
-- [Vagrants](#vagrants)
-  * [Windows 10 Vagrant Notes](#windows-10-vagrant-notes)
+- [Vagrant Operating Systems](#vagrant-operating-systems)
+  * [Ubuntu 20.04 LTS (Focal Fossa) 64-bit](#ubuntu-2004-lts-focal-fossa-64-bit)
+  * [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
+  * [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
+  * [Ubuntu 14.04 LTS (Trusty Tahr) 64-bit -- DEPRECATED](#ubuntu-1404-lts-trusty-tahr-64-bit----deprecated)
+  * [CentOS 8](#centos-8)
+  * [CentOS 7](#centos-7)
+  * [CentOS 6](#centos-6)
+  * [Windows 10](#windows-10)
 - [Customizing the vagrant VM](#customizing-the-vagrant-vm)
   * [Adding a Desktop GUI](#adding-a-desktop-gui)
 - [Recommended Plugins](#recommended-plugins)
@@ -46,20 +53,73 @@ Care has been taken to write everything in a platform-independent way, but devel
 1. Vagrant up your OS of choice: `vagrant up <vagrant-name>`
 1. See table below for info on the Vagrants provided
 
-## Vagrants
+## Vagrant Operating Systems
 
-| Vagrant Name | Vagrant Box | Description |
-| ------------ | ----------- | ----------- |
-| centos6 | [centos/6](https://app.vagrantup.com/generic/boxes/centos6) | CentOS 6 |
-| centos7 | [centos/7](https://app.vagrantup.com/generic/boxes/centos7) | CentOS 7 |
-| centos8 | [centos/8](https://app.vagrantup.com/generic/boxes/centos8) | CentOS 8 |
-| ubuntu14 | [ubuntu/trusty64](https://app.vagrantup.com/ubuntu/boxes/trusty64/versions/14.04) | Ubuntu 14.04 LTS (Trusty Tahr) 64-bit |
-| ubuntu16 | [ubuntu/xenial64](https://app.vagrantup.com/ubuntu/boxes/xenial64) | Ubuntu 16.04 LTS (Xenial Xerus) 64-bit |
-| ubuntu18 | [ubuntu/bionic64](https://app.vagrantup.com/ubuntu/boxes/bionic64) | Ubuntu 18.04 LTS (Bionic Beaver) 64-bit |
-| ubuntu20 | [ubuntu/focal64](https://app.vagrantup.com/ubuntu/boxes/focal64) | Ubuntu 20.04 LTS (Focal Fossa) 64-bit |
-| win10 | [Microsoft's Edge Developer Windows 10 vagrant image](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/) | Windows 10 |
+### Ubuntu 20.04 LTS (Focal Fossa) 64-bit
 
-### Windows 10 Vagrant Notes
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | ubuntu20 |
+| Vagrant box | [ubuntu/focal64](https://app.vagrantup.com/ubuntu/boxes/focal64) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+### Ubuntu 18.04 LTS (Bionic Beaver) 64-bit
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | ubuntu18 |
+| Vagrant box | [ubuntu/bionic64](https://app.vagrantup.com/ubuntu/boxes/bionic64) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+### Ubuntu 16.04 LTS (Xenial Xerus) 64-bit
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | ubuntu16 |
+| Vagrant box | [ubuntu/xenial64](https://app.vagrantup.com/ubuntu/boxes/xenial64) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+### Ubuntu 14.04 LTS (Trusty Tahr) 64-bit -- DEPRECATED
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | ubuntu14 |
+| Vagrant box | [ubuntu/trusty64](https://app.vagrantup.com/ubuntu/boxes/trusty64/versions/14.04) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+This vagrant is deprecated. It will be removed from this repo soon. Ubuntu 14.04 LTS is in *Extended Security Maintenance (ESM)*. It is no longer receiving any updates for new hardware or software. The ESM support ends in yearly 2022. See [Ubuntu Release Cycle](https://ubuntu.com/about/release-cycle) for more details.
+
+### CentOS 8
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | centos8 |
+| Vagrant box | [centos/8](https://app.vagrantup.com/generic/boxes/centos8) |
+| Credentials (e.g. for GUI Login) | root/vagrant |
+
+### CentOS 7
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | centos7 |
+| Vagrant box | [centos/7](https://app.vagrantup.com/generic/boxes/centos7) |
+| Credentials (e.g. for GUI Login) | root/vagrant TODO: Is this true? |
+
+### CentOS 6
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | centos6 |
+| Vagrant box | [centos/6](https://app.vagrantup.com/generic/boxes/centos6) |
+| Credentials (e.g. for GUI Login) | root/vagrant TODO: Is this true? |
+
+### Windows 10
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | win10 |
+| Vagrant box | [Microsoft's Edge Developer Windows 10 vagrant image](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/) |
+| Credentials (e.g. for GUI Login) | Initial: IEUser/Passw0rd!<br/>After provisioning: vagrant/vagrant |
 
 On or around April 10, 2020, it seems that the official [Microsoft/EdgeOnWindows10](https://app.vagrantup.com/Microsoft/boxes/EdgeOnWindows10) box has been moved or removed from it's Azure cloud storage location. It remains unavailable as of writing (September 28, 2020). If you do not already have this box in your local vagrant box cache, you will get a 404 error attempting to download.
 
@@ -208,6 +268,12 @@ The error output from the command was:
 # To resolve for Ubuntu 20.04
 vagrant ssh ubuntu20 -c 'sudo apt-get -y install build-essential linux-headers-`uname -r` dkms'
 vagrant reload ubuntu20 --provision
+```
+
+```bash
+# To resolve for Centos 8
+vagrant ssh centos8 -c 'sudo yum update -y'
+vagrant reload centos8 --provision
 ```
 
 ## References
