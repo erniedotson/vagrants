@@ -27,7 +27,6 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Vagrant VBGuest plugin](#vagrant-vbguest-plugin)
 - [Troubleshooting](#troubleshooting)
   * [Nugrant: Parameter 'vagrants' was not found](#nugrant-parameter-vagrants-was-not-found)
-  * [Error installing Guest Additions followed by error mounting /vagrant directory](#error-installing-guest-additions-followed-by-error-mounting-vagrant-directory)
 - [References](#references)
 
 <!-- tocstop -->
@@ -63,6 +62,57 @@ Care has been taken to write everything in a platform-independent way, but devel
 | Vagrant box | [ubuntu/focal64](https://app.vagrantup.com/ubuntu/boxes/focal64) |
 | Credentials (e.g. for GUI Login) | vagrant/vagrant |
 
+Steps to get up and running:
+
+1. Create the VM: `vagrant up ubuntu20`
+2. You may encounter an error similar to:
+
+    ```text
+    VirtualBox Guest Additions: Building the VirtualBox Guest Additions kernel
+    modules.  This may take a while.
+    VirtualBox Guest Additions: To build modules for other installed kernels, run
+    VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup <version>
+    VirtualBox Guest Additions: or
+    VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup all
+    VirtualBox Guest Additions: Kernel headers not found for target kernel
+    5.4.0-80-generic. Please install them and execute
+      /sbin/rcvboxadd setup
+    VirtualBox Guest Additions: Running kernel modules will not be replaced until
+    the system is restarted
+    Restarting VM to apply changes...
+    ==> ubuntu20: Attempting graceful shutdown of VM...
+    ==> ubuntu20: Booting VM...
+    ==> ubuntu20: Waiting for machine to boot. This may take a few minutes...
+    ==> ubuntu20: Machine booted and ready!
+    ==> ubuntu20: Checking for guest additions in VM...
+    ==> ubuntu20: Setting hostname...
+    ==> ubuntu20: Mounting shared folders...
+        ubuntu20: /vagrant => E:/work/my/vagrants
+    Vagrant was unable to mount VirtualBox shared folders. This is usually
+    because the filesystem "vboxsf" is not available. This filesystem is
+    made available via the VirtualBox Guest Additions and kernel module.
+    Please verify that these guest additions are properly installed in the
+    guest. This is not a bug in Vagrant and is usually caused by a faulty
+    Vagrant box. For context, the command attempted was:
+
+    mount -t vboxsf -o uid=1000,gid=1000,_netdev vagrant /vagrant
+
+    The error output from the command was:
+
+    : Invalid argument
+    ```
+
+    **CAUSE:** This is caused because by the *VirtualBox Guest Additions* are not present in the guest VM but they are required to share folders between the host and the guest. The *vagrant-vbguest* plugin attempts to install the *VirtualBox Guest Additions* but fails to do so because the necessary packages are not present on the guest VM.
+
+    **SOLUTION:** To resolve the issue you need to install the necessary packages.
+
+    ```bash
+    vagrant ssh ubuntu20 -c 'sudo apt-get -y install build-essential linux-headers-`uname -r` dkms'
+    vagrant reload ubuntu20 --provision
+    ```
+
+3. Begin using the VM: `vagrant ssh ubuntu20`
+
 ### Ubuntu 18.04 LTS (Bionic Beaver) 64-bit
 
 | Name | Value |
@@ -71,6 +121,9 @@ Care has been taken to write everything in a platform-independent way, but devel
 | Vagrant box | [ubuntu/bionic64](https://app.vagrantup.com/ubuntu/boxes/bionic64) |
 | Credentials (e.g. for GUI Login) | vagrant/vagrant |
 
+1. Create the VM: `vagrant up ubuntu18`
+2. Begin using the VM: `vagrant ssh ubuntu18`
+
 ### Ubuntu 16.04 LTS (Xenial Xerus) 64-bit
 
 | Name | Value |
@@ -78,6 +131,9 @@ Care has been taken to write everything in a platform-independent way, but devel
 | Vagrant name | ubuntu16 |
 | Vagrant box | [ubuntu/xenial64](https://app.vagrantup.com/ubuntu/boxes/xenial64) |
 | Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+1. Create the VM: `vagrant up ubuntu16`
+2. Begin using the VM: `vagrant ssh ubuntu16`
 
 ### Ubuntu 14.04 LTS (Trusty Tahr) 64-bit -- DEPRECATED
 
@@ -89,6 +145,9 @@ Care has been taken to write everything in a platform-independent way, but devel
 
 This vagrant is deprecated. It will be removed from this repo soon. Ubuntu 14.04 LTS is in *Extended Security Maintenance (ESM)*. It is no longer receiving any updates for new hardware or software. The ESM support ends in yearly 2022. See [Ubuntu Release Cycle](https://ubuntu.com/about/release-cycle) for more details.
 
+1. Create the VM: `vagrant up ubuntu14`
+2. Begin using the VM: `vagrant ssh ubuntu14`
+
 ### CentOS 8
 
 | Name | Value |
@@ -97,21 +156,109 @@ This vagrant is deprecated. It will be removed from this repo soon. Ubuntu 14.04
 | Vagrant box | [centos/8](https://app.vagrantup.com/generic/boxes/centos8) |
 | Credentials (e.g. for GUI Login) | root/vagrant |
 
+Steps to get up and running:
+
+1. Create the VM: `vagrant up centos8`
+2. You may encounter an error similar to:
+
+    ```text
+    ==> centos8: Checking for guest additions in VM...
+        centos8: No guest additions were detected on the base box for this VM! Guest
+        centos8: additions are required for forwarded ports, shared folders, host only
+        centos8: networking, and more. If SSH fails on this machine, please install
+        centos8: the guest additions and repackage the box to continue.
+        centos8:
+        centos8: This is not an error message; everything may continue to work properly,
+        centos8: in which case you may ignore this message.
+    The following SSH command responded with a non-zero exit status.
+    Vagrant assumes that this means the command failed!
+
+    umount /mnt
+
+    Stdout from the command:
+
+
+
+    Stderr from the command:
+
+    umount: /mnt: not mounted.
+    ```
+
+    **CAUSE:** This is caused because by the *VirtualBox Guest Additions* are not present in the guest VM but they are required to share folders between the host and the guest. The *vagrant-vbguest* plugin attempts to install the *VirtualBox Guest Additions* but fails to do so because the necessary packages are not present on the guest VM.
+
+    **SOLUTION:** To resolve the issue you need to install the necessary packages.
+
+    ```bash
+    vagrant ssh centos8 -c 'sudo yum update -y'
+    vagrant reload centos8 --provision
+    ```
+
+3. Begin using the VM: `vagrant ssh centos8`
+
 ### CentOS 7
 
 | Name | Value |
 | ---- | ----- |
 | Vagrant name | centos7 |
 | Vagrant box | [centos/7](https://app.vagrantup.com/generic/boxes/centos7) |
-| Credentials (e.g. for GUI Login) | root/vagrant TODO: Is this true? |
+| Credentials (e.g. for GUI Login) | root/vagrant |
+
+1. Create the VM: `vagrant up centos7`
+2. Begin using the VM: `vagrant ssh centos7`
 
 ### CentOS 6
 
 | Name | Value |
 | ---- | ----- |
 | Vagrant name | centos6 |
-| Vagrant box | [centos/6](https://app.vagrantup.com/generic/boxes/centos6) |
-| Credentials (e.g. for GUI Login) | root/vagrant TODO: Is this true? |
+| Vagrant box | [generic/centos6](https://app.vagrantup.com/generic/boxes/centos6) |
+| Credentials (e.g. for GUI Login) | root/vagrant |
+
+The offical [centos/6](https://app.vagrantup.com/generic/boxes/centos6) box now redirects to [generic/centos6](https://app.vagrantup.com/generic/boxes/centos6).
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up centos6`
+2. You may encounter an error similar to:
+
+    ```text
+    ==> centos6: Mounting shared folders...
+        centos6: /vagrant => E:/work/my/vagrants
+    Vagrant was unable to mount VirtualBox shared folders. This is usually
+    because the filesystem "vboxsf" is not available. This filesystem is
+    made available via the VirtualBox Guest Additions and kernel module.
+    Please verify that these guest additions are properly installed in the
+    guest. This is not a bug in Vagrant and is usually caused by a faulty
+    Vagrant box. For context, the command attempted was:
+
+    mount -t vboxsf -o uid=500,gid=500,_netdev vagrant /vagrant
+
+    The error output from the command was:
+
+    /sbin/mount.vboxsf: mounting failed with the error: Invalid argument
+    ```
+
+    To resolve it (end prevent the libselinux-python error below) enter the following commands:
+
+    ```bash
+    vagrant ssh centos6 -c 'sudo yum update -y && sudo yum install -y libselinux-python'
+    vagrant reload centos6 --provision
+    ```
+
+3. You may encounter an error similar to:
+
+    ```text
+    fatal: [centos6]: FAILED! => {"changed": false, "msg": "Aborting, target uses selinux but python bindings (libselinux-python) aren't installed!"}
+    ```
+
+    To resolve it enter the following commands:
+
+    ```bash
+    vagrant ssh centos6 -c 'sudo yum update -y && sudo yum install -y libselinux-python'
+    vagrant reload centos6 --provision
+    ```
+
+4. Begin using the VM: `vagrant ssh centos6`
 
 ### Windows 10
 
@@ -220,61 +367,6 @@ could be in your Vagrantfile:
 **CAUSE:** This is casued by the Nugrant plugin failing to load values from the *.vagrantuser* file.
 
 **SOLUTION:** To resolve, copy *.vagrantuser-sample* to *.vagrantuser*
-
-### Error installing Guest Additions followed by error mounting /vagrant directory
-
-**PROBLEM:** On a `vagrant up` command you may see a message similar to the following:
-
-```text
-VirtualBox Guest Additions: Building the VirtualBox Guest Additions kernel
-modules.  This may take a while.
-VirtualBox Guest Additions: To build modules for other installed kernels, run
-VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup <version>
-VirtualBox Guest Additions: or
-VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup all
-VirtualBox Guest Additions: Kernel headers not found for target kernel
-5.4.0-80-generic. Please install them and execute
-  /sbin/rcvboxadd setup
-VirtualBox Guest Additions: Running kernel modules will not be replaced until
-the system is restarted
-Restarting VM to apply changes...
-==> ubuntu20: Attempting graceful shutdown of VM...
-==> ubuntu20: Booting VM...
-==> ubuntu20: Waiting for machine to boot. This may take a few minutes...
-==> ubuntu20: Machine booted and ready!
-==> ubuntu20: Checking for guest additions in VM...
-==> ubuntu20: Setting hostname...
-==> ubuntu20: Mounting shared folders...
-    ubuntu20: /vagrant => E:/work/my/vagrants
-Vagrant was unable to mount VirtualBox shared folders. This is usually
-because the filesystem "vboxsf" is not available. This filesystem is
-made available via the VirtualBox Guest Additions and kernel module.
-Please verify that these guest additions are properly installed in the
-guest. This is not a bug in Vagrant and is usually caused by a faulty
-Vagrant box. For context, the command attempted was:
-
-mount -t vboxsf -o uid=1000,gid=1000,_netdev vagrant /vagrant
-
-The error output from the command was:
-
-: Invalid argument
-```
-
-**CAUSE:** This is caused because by the *VirtualBox Guest Additions* are not present in the guest VM but they are required to share folders between the host and the guest. The *vagrant-vbguest* plugin attempts to install the *VirtualBox Guest Additions* but fails to do so because the necessary packages are not present on the guest VM.
-
-**SOLUTION:** To resolve the issue you need to install the necessary packages.
-
-```bash
-# To resolve for Ubuntu 20.04
-vagrant ssh ubuntu20 -c 'sudo apt-get -y install build-essential linux-headers-`uname -r` dkms'
-vagrant reload ubuntu20 --provision
-```
-
-```bash
-# To resolve for Centos 8
-vagrant ssh centos8 -c 'sudo yum update -y'
-vagrant reload centos8 --provision
-```
 
 ## References
 

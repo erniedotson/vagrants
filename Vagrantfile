@@ -152,6 +152,12 @@ VMCONFIGURATION = {
   mounts: [
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
+}, {
+  name: 'centos6',
+  box: 'generic/centos6',
+  mounts: [
+    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
+  ]
 }
 
 ################################################################################
@@ -225,53 +231,6 @@ Vagrant.configure("2") do |config|
       config.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh #{vmconfig[:name]}'."
     end
   end
-
-  ##############################################################################
-  # CentOS 6
-  ##############################################################################
-  config.vm.define "centos6", autostart: false do |centos6|
-    centos6.vm.box = "centos/6"
-    # Periodically CentOS 'forgets' to install GuestAdditions in their monthly update of box version. Stick to the latest one we know works today.
-    # centos6.vm.box_version = "1905.01"
-    centos6.vm.hostname = "centos6"
-    # TODO:  centos6.disksize.size = config.user.vagrants.centos6.disksize
-    centos6.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.centos6.cpus
-      if config.user.vagrants.centos6.disable_audio
-        # Disable audio card to avoid interference with host audio
-        vb.customize ["modifyvm", :id, "--audio", "none"]
-      end
-      if config.user.vagrants.centos6.enable_clipboard
-        # Enable bidirectional Clipboard
-        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
-      end
-      if config.user.vagrants.centos6.enable_draganddrop
-        # Enable bidirectional file drag and drop
-        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
-      end
-      vb.gui = config.user.vagrants.centos6.gui
-      #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.centos6.memory}"
-
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.centos6.videomemory}"]
-    end
-
-    # Problem: centos/6 box results in this error on Windows hosts: "rsync" could not be found on your PATH. Make sure that rsync is properly installed on your system and available on the PATH.
-    # Resolution: Force it to use Virtualbox shared folders
-    centos6.vm.synced_folder ".", "/vagrant", type: "virtualbox"
-    # centos6.vm.provision "shell", privileged: false, inline: <<-SHELL
-    #   /vagrant/scripts/extend_rootfs.sh
-    # SHELL
-    centos6.vm.provision "shell", name: "packages", privileged: false, inline: <<-SHELL
-      /vagrant/scripts/provision_linux.sh
-    SHELL
-    centos6.vm.provision "gui", type: "shell", privileged: true, run: "never", inline: <<-SHELL
-      /vagrant/scripts/provision_linux_gui.sh
-    SHELL
-    centos6.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh centos6'."
-  end
-
 
   ##############################################################################
   # CentOS 7
