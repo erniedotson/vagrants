@@ -1,12 +1,62 @@
 ---
-- name: Install GUI
+- name: Install Desktop on Ubuntu
   hosts: ubuntu*
   tasks:
-  - name: Install Ubuntu Desktop
+
+  - name: Install Desktop for Ubuntu 20.04/18.04/16.04/14.04
+    # sudo apt install -y ubuntu-desktop
     become: true
-    ansible.builtin.package:
+    package:
       name: ubuntu-desktop
       state: present
-  - name: Initialize graphical mode
+    when: ansible_facts['os_family'] == "Debian"
+
+  - name: Initialize graphical mode for Ubuntu
+    become: true
+    command: "init 5"
+
+- name: Install Desktop on CentOS
+  hosts: centos*
+  tasks:
+
+  - name: Install the 'Gnome desktop' package group for CentOS 8
+    # sudo yum -y groupinstall "Gnome desktop"
+    become: true
+    yum:
+      name: "@gnome-desktop"
+      state: present
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 8
+
+  - name: Install the 'Gnome desktop' environment group for CentOS 7
+    # sudo yum -y groupinstall "Gnome desktop"
+    become: true
+    yum:
+      name: "@^gnome-desktop"
+      state: present
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 7
+
+  - name: Set graphical boot mode to default at boot for CentOS 8/7
+    become: true
+    command: systemctl set-default graphical.target
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int >= 7
+
+  - name: Install the 'Desktop' for CentOS 6
+    # sudo yum -y groupinstall "Desktop"
+    become: true
+    yum:
+      name: "@Desktop"
+      state: present
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 6
+
+  - name: Set graphical boot mode to default at boot for CentOS 6
+    # sudo sed -i 's/id:3:initdefault:/id:5:initdefault:/g' "/etc/inittab"
+    become: true
+    replace:
+      path: "/etc/inittab"
+      regexp: "id:3:initdefault:"
+      replace: "id:5:initdefault:"
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 6
+
+  - name: Initialize graphical mode for CentOS
     become: true
     command: "init 5"
