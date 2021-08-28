@@ -239,47 +239,6 @@ Vagrant.configure("2") do |config|
   end
 
   ##############################################################################
-  # Ubuntu 14.04 Trusty Tahr
-  ##############################################################################
-  config.vm.define "ubuntu14", autostart: false do |ubuntu14|
-    # ubuntu14.vbguest.auto_update = false
-    ubuntu14.vm.box = "ubuntu/trusty64"
-    ubuntu14.vm.hostname = "ubuntu14"
-    ubuntu14.disksize.size = config.user.vagrants.ubuntu14.disksize
-    ubuntu14.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.ubuntu14.cpus
-      if config.user.vagrants.ubuntu14.disable_audio
-        # Disable audio card to avoid interference with host audio
-        vb.customize ["modifyvm", :id, "--audio", "none"]
-      end
-      if config.user.vagrants.ubuntu14.enable_clipboard
-        # Enable bidirectional Clipboard
-        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
-      end
-      if config.user.vagrants.ubuntu14.enable_draganddrop
-        # Enable bidirectional file drag and drop
-        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
-      end
-      vb.gui = config.user.vagrants.ubuntu14.gui
-      #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.ubuntu14.memory}"
-
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.ubuntu14.videomemory}"]
-    end
-    ubuntu14.vm.provision "shell", privileged: false, inline: <<-SHELL
-      /vagrant/scripts/extend_rootfs.sh
-    SHELL
-    ubuntu14.vm.provision "shell", privileged: true, inline: <<-SHELL
-      /vagrant/scripts/provision_linux.sh
-    SHELL
-    ubuntu14.vm.provision "gui", type: "shell", privileged: true, run: "never", inline: <<-SHELL
-      /vagrant/scripts/provision_linux_gui.sh
-    SHELL
-    ubuntu14.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh ubuntu14'.\nIf you wish, you can install a GUI desktop by typing 'vagrant provision ubuntu14 --provision-with gui'."
-  end
-
-  ##############################################################################
   # Win10
   ##############################################################################
   config.vm.define "win10", autostart: false do |win10|
@@ -333,7 +292,7 @@ Vagrant.configure("2") do |config|
       cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
     SHELL
     win10.vm.provision "shell", privileged: true, inline: <<-SHELL
-    # $env:DEBUG=1
+      # $env:DEBUG=1
       cmd.exe /c \\vagrant\\scripts\\provision_win10.cmd
     SHELL
 

@@ -13,7 +13,6 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Ubuntu 20.04 LTS (Focal Fossa) 64-bit](#ubuntu-2004-lts-focal-fossa-64-bit)
   * [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
   * [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
-  * [Ubuntu 14.04 LTS (Trusty Tahr) 64-bit -- DEPRECATED](#ubuntu-1404-lts-trusty-tahr-64-bit----deprecated)
   * [CentOS 8](#centos-8)
   * [CentOS 7](#centos-7)
   * [CentOS 6](#centos-6)
@@ -134,19 +133,6 @@ Steps to get up and running:
 
 1. Create the VM: `vagrant up ubuntu16`
 2. Begin using the VM: `vagrant ssh ubuntu16`
-
-### Ubuntu 14.04 LTS (Trusty Tahr) 64-bit -- DEPRECATED
-
-| Name | Value |
-| ---- | ----- |
-| Vagrant name | ubuntu14 |
-| Vagrant box | [ubuntu/trusty64](https://app.vagrantup.com/ubuntu/boxes/trusty64/versions/14.04) |
-| Credentials (e.g. for GUI Login) | vagrant/vagrant |
-
-This vagrant is deprecated. It will be removed from this repo soon. Ubuntu 14.04 LTS is in *Extended Security Maintenance (ESM)*. It is no longer receiving any updates for new hardware or software. The ESM support ends in yearly 2022. See [Ubuntu Release Cycle](https://ubuntu.com/about/release-cycle) for more details.
-
-1. Create the VM: `vagrant up ubuntu14`
-2. Begin using the VM: `vagrant ssh ubuntu14`
 
 ### CentOS 8
 
