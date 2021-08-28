@@ -204,7 +204,33 @@ Steps to get up and running:
 | Credentials (e.g. for GUI Login) | root/vagrant |
 
 1. Create the VM: `vagrant up centos7`
-2. Begin using the VM: `vagrant ssh centos7`
+2. You may encounter an error similar to:
+
+    ```text
+    ==> centos6: Mounting shared folders...
+        centos6: /vagrant => E:/work/my/vagrants
+    Vagrant was unable to mount VirtualBox shared folders. This is usually
+    because the filesystem "vboxsf" is not available. This filesystem is
+    made available via the VirtualBox Guest Additions and kernel module.
+    Please verify that these guest additions are properly installed in the
+    guest. This is not a bug in Vagrant and is usually caused by a faulty
+    Vagrant box. For context, the command attempted was:
+
+    mount -t vboxsf -o uid=500,gid=500,_netdev vagrant /vagrant
+
+    The error output from the command was:
+
+    /sbin/mount.vboxsf: mounting failed with the error: Invalid argument
+    ```
+
+    To resolve it (end prevent the libselinux-python error below) enter the following commands:
+
+    ```bash
+    vagrant ssh centos7 -c 'sudo yum update -y'
+    vagrant reload centos7 --provision
+    ```
+
+3. Begin using the VM: `vagrant ssh centos7`
 
 ### CentOS 6
 

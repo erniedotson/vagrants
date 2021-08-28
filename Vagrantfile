@@ -153,6 +153,12 @@ VMCONFIGURATION = {
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
 }, {
+  name: 'centos7',
+  box: 'centos/7',
+  mounts: [
+    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
+  ]
+}, {
   name: 'centos6',
   box: 'generic/centos6',
   mounts: [
@@ -230,54 +236,6 @@ Vagrant.configure("2") do |config|
       end
       config.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh #{vmconfig[:name]}'."
     end
-  end
-
-  ##############################################################################
-  # CentOS 7
-  ##############################################################################
-  config.vm.define "centos7", autostart: false do |centos7|
-    # centos7.vbguest.auto_update = false
-    centos7.vm.box = "centos/7"
-    # Periodically CentOS 'forgets' to install GuestAdditions in their monthly update of box version. Stick to the latest one we know works today.
-    # centos7.vm.box_version = "1706.02"
-    centos7.vm.hostname = "centos7"
-    centos7.disksize.size = config.user.vagrants.centos7.disksize
-    centos7.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.centos7.cpus
-      if config.user.vagrants.centos7.disable_audio
-        # Disable audio card to avoid interference with host audio
-        vb.customize ["modifyvm", :id, "--audio", "none"]
-      end
-      if config.user.vagrants.centos7.enable_clipboard
-        # Enable bidirectional Clipboard
-        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
-      end
-      if config.user.vagrants.centos7.enable_draganddrop
-        # Enable bidirectional file drag and drop
-        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
-      end
-      vb.gui = config.user.vagrants.centos7.gui
-      #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.centos7.memory}"
-
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.centos7.videomemory}"]
-    end
-
-    # Problem: centos/7 box results in this error on Windows hosts: "rsync" could not be found on your PATH. Make sure that rsync is properly installed on your system and available on the PATH.
-    # Resolution: Force it to use Virtualbox shared folders
-    centos7.vm.synced_folder ".", "/vagrant", type: "virtualbox"
-
-    centos7.vm.provision "shell", privileged: false, inline: <<-SHELL
-      /vagrant/scripts/extend_rootfs.sh
-    SHELL
-    centos7.vm.provision "shell", inline: <<-SHELL
-      /vagrant/scripts/provision_linux.sh
-    SHELL
-    centos7.vm.provision "gui", type: "shell", privileged: true, run: "never", inline: <<-SHELL
-      /vagrant/scripts/provision_linux_gui.sh
-    SHELL
-    centos7.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh centos7'."
   end
 
   ##############################################################################

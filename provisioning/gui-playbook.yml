@@ -19,17 +19,25 @@
   hosts: centos*
   tasks:
 
-  - name: Install the 'Gnome desktop' environment group for CentOS 8/7
+  - name: Install the 'Gnome desktop' package group for CentOS 8
     # sudo yum -y groupinstall "Gnome desktop"
     become: true
     yum:
       name: "@gnome-desktop"
       state: present
-    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int >= 7
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 8
+
+  - name: Install the 'Gnome desktop' environment group for CentOS 7
+    # sudo yum -y groupinstall "Gnome desktop"
+    become: true
+    yum:
+      name: "@^gnome-desktop"
+      state: present
+    when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 7
 
   - name: Set graphical boot mode to default at boot for CentOS 8/7
     become: true
-    command: systemctl set-default graphical
+    command: systemctl set-default graphical.target
     when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int >= 7
 
   - name: Install the 'Desktop' for CentOS 6
