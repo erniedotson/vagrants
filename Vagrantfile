@@ -191,6 +191,7 @@ Vagrant.configure("2") do |config|
       config.vm.box = "#{vmconfig[:box]}"
       config.vm.hostname = "#{vmconfig[:name]}"
       config.disksize.size = eval("config.user.vagrants.#{vmconfig[:name]}.disksize")
+      config.vm.boot_timeout = eval("config.user.vagrants.#{vmconfig[:name]}.boot_timeout")
       config.vm.provider "virtualbox" do |vb|
         vb.cpus = eval("config.user.vagrants.#{vmconfig[:name]}.cpus")
         if eval("config.user.vagrants.#{vmconfig[:name]}.disable_audio")
@@ -250,6 +251,7 @@ Vagrant.configure("2") do |config|
     win10.vm.network :forwarded_port, host: 33389, guest: 3389, host_ip: "127.0.0.1", id: "rdp", auto_correct: true
     win10.vm.hostname = "win10"
     win10.disksize.size = config.user.vagrants.win10.disksize
+    win10.vm.boot_timeout = config.user.vagrants.win10.boot_timeout
     win10.vm.provider "virtualbox" do |vb|
       vb.cpus = config.user.vagrants.win10.cpus
       if config.user.vagrants.win10.disable_audio

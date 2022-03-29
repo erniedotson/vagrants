@@ -8,6 +8,7 @@ vagrants:
         gui: false
         memory: 512
         videomemory: 16
+        boot_timeout: 300
     centos7:
         cpus: 1
         disable_audio: true
@@ -17,6 +18,7 @@ vagrants:
         gui: false
         memory: 512
         videomemory: 16
+        boot_timeout: 300
     centos8:
         cpus: 1
         disable_audio: true
@@ -26,6 +28,7 @@ vagrants:
         gui: false
         memory: 512
         videomemory: 16
+        boot_timeout: 300
     ubuntu14:
         cpus: 1
         disable_audio: true
@@ -35,6 +38,7 @@ vagrants:
         gui: false
         memory: 512
         videomemory: 12
+        boot_timeout: 300
     ubuntu16:
         cpus: 2
         disable_audio: true
@@ -44,6 +48,7 @@ vagrants:
         gui: false
         memory: 1024
         videomemory: 16
+        boot_timeout: 300
     ubuntu18:
         cpus: 2
         disable_audio: true
@@ -53,6 +58,7 @@ vagrants:
         gui: false
         memory: 1024
         videomemory: 16
+        boot_timeout: 300
     ubuntu20:
         cpus: 2
         disable_audio: true
@@ -62,6 +68,7 @@ vagrants:
         gui: false
         memory: 1024
         videomemory: 4
+        boot_timeout: 300
     win10:
         cpus: 2
         disable_audio: true
@@ -71,3 +78,4 @@ vagrants:
         gui: false
         memory: 2048
         videomemory: 256
+        boot_timeout: 500
