@@ -43,8 +43,9 @@ if Vagrant::Util::Platform.windows? then
   end
 
   unless running_in_admin_mode?
-    puts "This vagrant makes use of SymLinks to the host. On Windows, Administrative privileges are required to create symlinks (mklink.exe). Try again from an Administrative command prompt."
-    exit 1
+    puts "WARNING: To make use of symlinks to the host, Administrative "
+    puts "         privileges are required to create symlinks (mklink.exe)."
+    puts "         Try again from an Administrative command prompt.\n\n"
   end
 end
 
