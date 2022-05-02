@@ -34,20 +34,6 @@ def extract_zip(file, destination)
     end
   end
 end
-################################################################################
-# Ensure running 'As Administrator' on Windows
-################################################################################
-if Vagrant::Util::Platform.windows? then
-  def running_in_admin_mode?
-    (`reg query HKU\\S-1-5-19 2>&1` =~ /ERROR/).nil?
-  end
-
-  unless running_in_admin_mode?
-    puts "WARNING: To make use of symlinks to the host, Administrative "
-    puts "         privileges are required to create symlinks (mklink.exe)."
-    puts "         Try again from an Administrative command prompt.\n\n"
-  end
-end
 
 ################################################################################
 # Check for arguments
@@ -57,9 +43,25 @@ $arg_win10 = false
 for i in 0 ... ARGV.length
   if "#{ARGV[i]}" == "up"
     arg_up = true
-  end
-  if "#{ARGV[i]}" == "win10"
+  elsif "#{ARGV[i]}" == "win10"
     arg_win10 = true
+  end
+end
+
+################################################################################
+# If performing 'up' on Windows warn about running 'As Administrator'
+################################################################################
+if arg_up
+  if Vagrant::Util::Platform.windows? then
+    def running_in_admin_mode?
+      (`reg query HKU\\S-1-5-19 2>&1` =~ /ERROR/).nil?
+    end
+
+    unless running_in_admin_mode?
+      puts "WARNING: To make use of symlinks to the host, Administrative "
+      puts "         privileges are required (to execute mklink.exe)."
+      puts "         Try again from an Administrative command prompt.\n\n"
+    end
   end
 end
 
