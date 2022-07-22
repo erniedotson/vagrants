@@ -141,6 +141,9 @@ end
 # Refrence: https://github.com/martinandersson/dev-mini/blob/master/Vagrantfile
 
 VMCONFIGURATION = {
+  name: 'ubuntu22',
+  box: 'ubuntu/jammy64',
+}, {
   name: 'ubuntu20',
   box: 'ubuntu/focal64',
 }, {

@@ -69,6 +69,16 @@ vagrants:
         memory: 1024
         videomemory: 4
         boot_timeout: 300
+    ubuntu22:
+        cpus: 2
+        disable_audio: true
+        disksize: 40GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 1024
+        videomemory: 4
+        boot_timeout: 300
     win10:
         cpus: 2
         disable_audio: true

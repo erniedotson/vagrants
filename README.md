@@ -10,6 +10,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Install pre-requisites](#install-pre-requisites)
   * [Quick Start](#quick-start)
 - [Vagrant Operating Systems](#vagrant-operating-systems)
+  * [Ubuntu 22.04 LTS (Jammy Jellyfish) 64-bit](#ubuntu-2204-lts-jammy-jellyfish-64-bit)
   * [Ubuntu 20.04 LTS (Focal Fossa) 64-bit](#ubuntu-2004-lts-focal-fossa-64-bit)
   * [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
   * [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
@@ -52,6 +53,19 @@ Care has been taken to write everything in a platform-independent way, but devel
 1. See table below for info on the Vagrants provided
 
 ## Vagrant Operating Systems
+
+### Ubuntu 22.04 LTS (Jammy Jellyfish) 64-bit
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | ubuntu22 |
+| Vagrant box | [ubuntu/jammy64](https://app.vagrantup.com/ubuntu/boxes/jammy64) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up ubuntu22`
+2. Begin using the VM: `vagrant ssh ubuntu22`
 
 ### Ubuntu 20.04 LTS (Focal Fossa) 64-bit
 
