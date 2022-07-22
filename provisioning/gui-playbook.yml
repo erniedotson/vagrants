@@ -3,7 +3,7 @@
   hosts: ubuntu*
   tasks:
 
-  - name: Install Desktop for Ubuntu 20.04/18.04/16.04/14.04
+  - name: Install Desktop for Ubuntu 22.04/20.04/18.04/16.04/14.04
     # sudo apt install -y ubuntu-desktop
     become: true
     package:
@@ -12,6 +12,22 @@
     when: ansible_facts['os_family'] == "Debian"
 
   - name: Initialize graphical mode for Ubuntu
+    become: true
+    command: "init 5"
+
+- name: Install Desktop on Debian
+  hosts: debian*
+  tasks:
+
+  - name: Install Desktop for Debian 10
+    # sudo apt install -y gnome
+    become: true
+    package:
+      name: gnome
+      state: present
+    when: ansible_facts['os_family'] == "Debian"
+
+  - name: Initialize graphical mode for Debian
     become: true
     command: "init 5"
 

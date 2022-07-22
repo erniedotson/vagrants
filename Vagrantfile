@@ -153,6 +153,12 @@ VMCONFIGURATION = {
   name: 'ubuntu16',
   box: 'ubuntu/xenial64',
 }, {
+  name: 'debian10',
+  box: 'generic/debian10',
+  mounts: [
+    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
+  ]
+}, {
   name: 'centos8',
   box: 'centos/8',
   mounts: [

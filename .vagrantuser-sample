@@ -29,6 +29,16 @@ vagrants:
         memory: 512
         videomemory: 16
         boot_timeout: 300
+    debian10:
+        cpus: 2
+        disable_audio: true
+        disksize: 128GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 2048
+        videomemory: 256
+        boot_timeout: 1800
     ubuntu14:
         cpus: 1
         disable_audio: true
