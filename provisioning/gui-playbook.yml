@@ -1,5 +1,5 @@
 ---
-- name: Install Desktop on Ubuntu
+- name: Install Desktop on Ubuntu Systems
   hosts: ubuntu*
   tasks:
 
@@ -15,11 +15,11 @@
     become: true
     command: "init 5"
 
-- name: Install Desktop on Debian
+- name: Install Desktop on Debian Systems
   hosts: debian*
   tasks:
 
-  - name: Install Desktop for Debian 10
+  - name: Install Desktop for Debian 11/10
     # sudo apt install -y gnome
     become: true
     package:
@@ -31,7 +31,7 @@
     become: true
     command: "init 5"
 
-- name: Install Desktop on CentOS
+- name: Install Desktop on CentOS Systems
   hosts: centos*
   tasks:
 
