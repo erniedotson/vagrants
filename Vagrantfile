@@ -159,6 +159,12 @@ VMCONFIGURATION = {
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
 }, {
+  name: 'debian11',
+  box: 'generic/debian11',
+  mounts: [
+    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
+  ]
+}, {
   name: 'centos8',
   box: 'centos/8',
   mounts: [
@@ -233,7 +239,7 @@ Vagrant.configure("2") do |config|
       end
 
       config.vm.provision "ansible_local" do |ansible|
-        # ansible.verbose = "vvv"
+        # ansible.verbose = "vvvv"
         ansible.playbook = "provisioning/default-playbook.yml"
         ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
         ansible.galaxy_role_file = 'provisioning/requirements.yml'

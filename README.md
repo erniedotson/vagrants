@@ -14,6 +14,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Ubuntu 20.04 LTS (Focal Fossa) 64-bit](#ubuntu-2004-lts-focal-fossa-64-bit)
   * [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
   * [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
+  * [Debian 11](#debian-11)
   * [Debian 10](#debian-10)
   * [CentOS 8](#centos-8)
   * [CentOS 7](#centos-7)
@@ -148,6 +149,19 @@ Steps to get up and running:
 
 1. Create the VM: `vagrant up ubuntu16`
 2. Begin using the VM: `vagrant ssh ubuntu16`
+
+### Debian 11
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | debian11 |
+| Vagrant box | [generic/debian11](https://app.vagrantup.com/generic/boxes/debian11) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up debian11`
+2. Begin using the VM: `vagrant ssh debian11`
 
 ### Debian 10
 
