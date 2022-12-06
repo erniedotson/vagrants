@@ -36,36 +36,6 @@ def extract_zip(file, destination)
 end
 
 ################################################################################
-# Check for arguments
-################################################################################
-$arg_up = false
-$arg_win10 = false
-for i in 0 ... ARGV.length
-  if "#{ARGV[i]}" == "up"
-    arg_up = true
-  elsif "#{ARGV[i]}" == "win10"
-    arg_win10 = true
-  end
-end
-
-################################################################################
-# If performing 'up' on Windows warn about running 'As Administrator'
-################################################################################
-if arg_up
-  if Vagrant::Util::Platform.windows? then
-    def running_in_admin_mode?
-      (`reg query HKU\\S-1-5-19 2>&1` =~ /ERROR/).nil?
-    end
-
-    unless running_in_admin_mode?
-      puts "WARNING: To make use of symlinks to the host, Administrative "
-      puts "         privileges are required (to execute mklink.exe)."
-      puts "         Try again from an Administrative command prompt.\n\n"
-    end
-  end
-end
-
-################################################################################
 # Function to check whether VM was already provisioned
 ################################################################################
 def provisioned?(vm_name='default', provider='virtualbox')
@@ -97,6 +67,112 @@ def getVagrantFilePath()
 end
 
 ################################################################################
+# Purpose    : Get full name and path of ssh config in home dir
+#            : provided name
+# Paramaters : none
+# Returns    : full name and path to ssh config file - it is presumed to exist
+################################################################################
+def getSSHConfigFilePath()
+  return File.join(ENV['HOME'], ".ssh/config")
+end
+
+################################################################################
+# Purpose    : Get full name and path of vagrant ssh-config file based on
+#            : provided name
+# Paramaters : name - the name of the vagrant
+# Returns    : full name and path to vagrant ssh-config file regardless of its
+#            : existence
+################################################################################
+def getVagrantSSHConfigFilePath(name)
+  parent_dir = File.basename(getVagrantFilePath())
+  file = File.join(ENV['HOME'], ".ssh/vagrants/#{name}.#{parent_dir}.config")
+  return file
+end
+
+################################################################################
+# Purpose    : Add/update vagrant ssh-config file
+# Paramaters : name - the name of the vagrant
+# Returns    : n/a
+################################################################################
+def createVagrantSSHConfigFile(name)
+
+  # Create the ~/.ssh/vagrants subdir
+  Dir.mkdir(File.join(ENV['HOME'], ".ssh/vagrants")) unless Dir.exist?(File.join(ENV['HOME'], ".ssh/vagrants"))
+
+  # Create the ssh config file
+  out = `vagrant ssh-config #{name}`
+  vagrant_ssh_file_path = getVagrantSSHConfigFilePath(name)
+  File.open(vagrant_ssh_file_path, 'w') { |f| f.write(out) }
+
+  # Adjust the Host name in the new config file to minimize duplicate names
+  parent_dir = File.basename(getVagrantFilePath())
+  lines = File.readlines(vagrant_ssh_file_path)
+  lines[0] = "Host #{name}.#{parent_dir}" << $/
+  File.open(vagrant_ssh_file_path, 'w') { |f| f.write(lines.join) }
+
+  # Add Include line to ~/.ssh/config file if it doesn't exist already
+  ssh_config_file_path = getSSHConfigFilePath()
+  lines = File.readlines(ssh_config_file_path, chomp: true)
+  if lines[0] != "Include vagrants/*"
+    lines = File.readlines(ssh_config_file_path)
+    f = File.open(ssh_config_file_path + ".tmp", 'w')
+    f.write("Include vagrants/*\n\n")
+    f.write(lines.join)
+    f.close
+    FileUtils.mv(ssh_config_file_path + ".tmp", ssh_config_file_path)
+  end
+end
+
+################################################################################
+# Purpose    : Delete vagrant ssh-config file
+# Paramaters : name - the name of the vagrant
+# Returns    : n/a
+################################################################################
+def deleteVagrantSSHConfigFile(name)
+  file = getVagrantSSHConfigFilePath(name)
+  File.delete(file) if File.exist?(file)
+end
+
+################################################################################
+# Check for arguments
+################################################################################
+$arg_destroy = false
+$arg_force = false
+$arg_up = false
+$arg_win10 = false
+for i in 0 ... ARGV.length
+  if "#{ARGV[i]}" == "destroy"
+    arg_destroy = true
+  end
+  if "#{ARGV[i]}" == "-f"
+    arg_force = true
+  end
+  if "#{ARGV[i]}" == "up"
+    arg_up = true
+  end
+  if "#{ARGV[i]}" == "win10"
+    arg_win10 = true
+  end
+end
+
+################################################################################
+# If performing 'up' on Windows warn about running 'As Administrator'
+################################################################################
+if arg_up
+  if Vagrant::Util::Platform.windows? then
+    def running_in_admin_mode?
+      (`reg query HKU\\S-1-5-19 2>&1` =~ /ERROR/).nil?
+    end
+
+    unless running_in_admin_mode?
+      puts "WARNING: To make use of symlinks to the host, Administrative "
+      puts "         privileges are required (to execute mklink.exe)."
+      puts "         Try again from an Administrative command prompt.\n\n"
+    end
+  end
+end
+
+################################################################################
 # Get the path to Vagrantfile
 ################################################################################
 vagrantFilePath = getVagrantFilePath
@@ -105,6 +181,7 @@ vagrantFilePath = getVagrantFilePath
 ################################################################################
 # If we are up'ing win10, download and register the box, if necessary
 ################################################################################
+# TODO: Refactor
 if ( arg_up & arg_win10 )
   # For more/updated windows boxes, refer to:
   # https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
@@ -253,6 +330,23 @@ Vagrant.configure("2") do |config|
         ansible.galaxy_role_file = 'provisioning/requirements.yml'
         ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
       end
+
+      config.trigger.after :up do |trigger|
+        trigger.on_error = :continue
+        trigger.warn = "Adding vagrant to ~/.ssh/config on host"
+        trigger.ruby do
+          createVagrantSSHConfigFile("#{vmconfig[:name]}")
+        end
+      end
+	  
+      config.trigger.after :destroy do |trigger|
+        # trigger.on_error = (arg_destroy & arg_force) ? :continue : :halt
+        trigger.warn = "Removing vagrant from ~/.ssh/config on host"
+        trigger.ruby do
+          deleteVagrantSSHConfigFile("#{vmconfig[:name]}")
+        end
+      end
+
       config.vm.post_up_message = "VM is ready. You can access by typing 'vagrant ssh #{vmconfig[:name]}'."
     end
   end
