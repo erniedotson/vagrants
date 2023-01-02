@@ -29,6 +29,16 @@ vagrants:
         memory: 512
         videomemory: 16
         boot_timeout: 300
+    centos8s:
+        cpus: 1
+        disable_audio: true
+        disksize: 128GB # NOTE: generic/centos8s image does not auto-expand partition
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 2048
+        videomemory: 64
+        boot_timeout: 300
     debian10:
         cpus: 2
         disable_audio: true

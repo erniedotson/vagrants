@@ -242,6 +242,12 @@ VMCONFIGURATION = {
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
 }, {
+    name: 'centos8s',
+    box: 'generic/centos8s',
+    mounts: [
+      { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
+    ]
+}, {
   name: 'centos8',
   box: 'centos/8',
   mounts: [
@@ -338,7 +344,7 @@ Vagrant.configure("2") do |config|
           createVagrantSSHConfigFile("#{vmconfig[:name]}")
         end
       end
-	  
+
       config.trigger.after :destroy do |trigger|
         # trigger.on_error = (arg_destroy & arg_force) ? :continue : :halt
         trigger.warn = "Removing vagrant from ~/.ssh/config on host"

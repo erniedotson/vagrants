@@ -16,7 +16,8 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Ubuntu 16.04 LTS (Xenial Xerus) 64-bit](#ubuntu-1604-lts-xenial-xerus-64-bit)
   * [Debian 11](#debian-11)
   * [Debian 10](#debian-10)
-  * [CentOS 8](#centos-8)
+  * [CentOS 8 Stream](#centos-8-stream)
+  * [CentOS 8 -- DEPRECATED](#centos-8----deprecated)
   * [CentOS 7](#centos-7)
   * [CentOS 6](#centos-6)
   * [Windows 10](#windows-10)
@@ -176,18 +177,49 @@ Steps to get up and running:
 1. Create the VM: `vagrant up debian10`
 2. Begin using the VM: `vagrant ssh debian10`
 
-### CentOS 8
+### CentOS 8 Stream
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | centos8s |
+| Vagrant box | [generic/centos8s](https://app.vagrantup.com/generic/boxes/centos8s) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up centos8`
+2. Begin using the VM: `vagrant ssh centos8s`
+
+### CentOS 8 -- DEPRECATED
+
+This vagrant is deprecated and will be removed soon. You should use the centos8s one instead.
 
 | Name | Value |
 | ---- | ----- |
 | Vagrant name | centos8 |
-| Vagrant box | [centos/8](https://app.vagrantup.com/generic/boxes/centos8) |
+| Vagrant box | [centos/8](https://app.vagrantup.com/centos/boxes/8) |
 | Credentials (e.g. for GUI Login) | root/vagrant |
 
 Steps to get up and running:
 
 1. Create the VM: `vagrant up centos8`
 2. You may encounter an error similar to:
+
+    ```text
+    Error: Failed to download metadata for repo 'appstream': Cannot prepare internal mirrorlist: No URLs in mirrorlist
+    ```
+
+    **CAUSE:** CentOS 8 is [EOL on December 31, 2021](https://www.centos.org/centos-linux-eol/).
+
+    **SOLUTION:** Migrate to CentOS Stream 8.
+
+    ```bash
+    vagrant ssh centos8 -c 'sudo dnf --disablerepo "*" --enablerepo=extras swap centos-linux-repos centos-stream-repos -y'
+    vagrant ssh centos8 -c 'sudo dnf distro-sync -y'
+    vagrant reload centos8 --provision
+    ```
+
+3. You may encounter an error similar to:
 
     ```text
     ==> centos8: Checking for guest additions in VM...
@@ -221,7 +253,7 @@ Steps to get up and running:
     vagrant reload centos8 --provision
     ```
 
-3. Begin using the VM: `vagrant ssh centos8`
+4. Begin using the VM: `vagrant ssh centos8`
 
 ### CentOS 7
 
@@ -357,7 +389,7 @@ Change the appropriate `gui: false` entry in the *.vagrantuser* file to `gui: tr
 
 Increase the `videomemory` option in the *.vagrantuser* file. Many are set to use 4 MB of video memory which just isn't enough for a Desktop GUI. I recommend bumping this up to 128 or 256 MB.
 
-Example of chages below:
+Example of changes below:
 
 ```diff
     ubuntu20:
@@ -418,7 +450,7 @@ your .vagrantuser file? Here where we think the error
 could be in your Vagrantfile:
 ```
 
-**CAUSE:** This is casued by the Nugrant plugin failing to load values from the *.vagrantuser* file.
+**CAUSE:** This is caused by the Nugrant plugin failing to load values from the *.vagrantuser* file.
 
 **SOLUTION:** To resolve, copy *.vagrantuser-sample* to *.vagrantuser*
 
