@@ -21,6 +21,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [CentOS 7](#centos-7)
   * [CentOS 6](#centos-6)
   * [Windows 10](#windows-10)
+  * [Windows 11](#windows-11)
 - [Customizing the vagrant VM](#customizing-the-vagrant-vm)
   * [Adding a Desktop GUI](#adding-a-desktop-gui)
 - [Recommended Plugins](#recommended-plugins)
@@ -40,7 +41,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
 
 ### Install pre-requisites
 
-Care has been taken to write everything in a platform-independent way, but development is done primarily on Windows inside of Git Bash. If something doensn't work quite right, try that environment.
+Care has been taken to write everything in a platform-independent way, but development is done primarily on Windows inside of Git Bash. If something doesn't work quite right, try that environment.
 
 - Install VirtualBox
 - Install VirtualBox Extension Pack
@@ -369,6 +370,19 @@ Instead, this `win10` vagrant will download [Microsoft's Edge Developer Windows 
     1. *Optional:* **On the host**: Close the VirtualBox Manager window.
 1. Perform another `vagrant up win10` command and this time vagrant will begin provisioning the guest.
 1. `vagrant rdp win10` to connect, etc. etc. Use username, *vagrant*, and password, *vagrant*.
+
+### Windows 11
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | win11 |
+| Vagrant box | [gusztavvargadr/windows-11](https://app.vagrantup.com/gusztavvargadr/boxes/windows-11) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up win11`
+2. Begin using the VM: `vagrant rdp win11`
 
 ## Customizing the vagrant VM
 

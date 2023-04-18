@@ -119,3 +119,13 @@ vagrants:
         memory: 2048
         videomemory: 256
         boot_timeout: 500
+    win11:
+        cpus: 2
+        disable_audio: true
+        disksize: 127GB
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 4096
+        videomemory: 256
+        boot_timeout: 600

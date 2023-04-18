@@ -423,4 +423,52 @@ Vagrant.configure("2") do |config|
 
     win10.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win10' or 'vagrant rdp win10' and using uername 'IEUser' and password 'Passw0rd!'."
   end
+
+  ##############################################################################
+  # Win11
+  ##############################################################################
+  config.vm.define "win11", autostart: false do |win11|
+    win11.vm.box = "gusztavvargadr/windows-11"
+    win11.vm.guest = :windows
+    win11.vm.hostname = "win11"
+    win11.disksize.size = config.user.vagrants.win11.disksize
+    win11.vm.boot_timeout = config.user.vagrants.win11.boot_timeout
+    win11.vm.provider "virtualbox" do |vb|
+      vb.cpus = config.user.vagrants.win11.cpus
+      if config.user.vagrants.win11.disable_audio
+        # Disable audio card to avoid interference with host audio
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      if config.user.vagrants.win11.enable_clipboard
+        # Enable bidirectional Clipboard
+        vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
+      end
+      if config.user.vagrants.win11.enable_draganddrop
+        # Enable bidirectional file drag and drop
+        vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+      end
+      vb.gui = config.user.vagrants.win11.gui
+      #vb.memory = "2048"
+      vb.memory = "#{config.user.vagrants.win11.memory}"
+
+      #vb.customize ["modifyvm", :id, "--vram", "256"]
+      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.win11.videomemory}"]
+    end
+
+    win11.vm.provision "shell", privileged: true, inline: <<-SHELL
+      # $env:DEBUG=1
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
+    SHELL
+    # win11.vm.provision "shell", privileged: true, inline: <<-SHELL
+    #   # $env:DEBUG=1
+    #   cmd.exe /c \\vagrant\\scripts\\provision_win11.cmd
+    # SHELL
+
+    win11.vm.provision "extendfs", type: "shell", run: "never", privileged: true, inline: <<-SHELL
+      # $env:DEBUG=1
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
+    SHELL
+
+    win11.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win11' or 'vagrant rdp win11'."
+  end
 end
