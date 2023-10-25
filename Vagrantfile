@@ -241,6 +241,12 @@ VMCONFIGURATION = {
   mounts: [
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
+},{
+  name: 'debian12',
+  box: 'generic/debian12',
+  mounts: [
+    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
+  ]
 }, {
     name: 'centos8s',
     box: 'generic/centos8s',

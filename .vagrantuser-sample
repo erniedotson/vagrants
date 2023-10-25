@@ -59,6 +59,16 @@ vagrants:
         memory: 2048
         videomemory: 256
         boot_timeout: 1800
+    debian12:
+        cpus: 2
+        disable_audio: true
+        disksize: 128GB # NOTE: generic/debian12 image does not auto-expand partition
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 2048
+        videomemory: 256
+        boot_timeout: 1800
     ubuntu14:
         cpus: 1
         disable_audio: true
