@@ -113,10 +113,10 @@ def createVagrantSSHConfigFile(name)
   # Add Include line to ~/.ssh/config file if it doesn't exist already
   ssh_config_file_path = getSSHConfigFilePath()
   lines = File.readlines(ssh_config_file_path, chomp: true)
-  if lines[0] != "Include vagrants/*"
+  if lines[0] != "Include ~/.ssh/vagrants/*"
     lines = File.readlines(ssh_config_file_path)
     f = File.open(ssh_config_file_path + ".tmp", 'w')
-    f.write("Include vagrants/*\n\n")
+    f.write("Include ~/.ssh/vagrants/*\n\n")
     f.write(lines.join)
     f.close
     FileUtils.mv(ssh_config_file_path + ".tmp", ssh_config_file_path)
