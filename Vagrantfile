@@ -415,7 +415,7 @@ Vagrant.configure("2") do |config|
 
     win10.vm.provision "shell", privileged: true, inline: <<-SHELL
       # $env:DEBUG=1
-      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd 0
     SHELL
     win10.vm.provision "shell", privileged: true, inline: <<-SHELL
       # $env:DEBUG=1
@@ -424,10 +424,10 @@ Vagrant.configure("2") do |config|
 
     win10.vm.provision "extendfs", type: "shell", run: "never", privileged: true, inline: <<-SHELL
       # $env:DEBUG=1
-      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd 0
     SHELL
 
-    win10.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win10' or 'vagrant rdp win10' and using uername 'IEUser' and password 'Passw0rd!'."
+    win10.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win10' or 'vagrant rdp win10' and using username '#{win10.winrm.username}' and password '#{win10.winrm.password}'."
   end
 
   ##############################################################################
@@ -463,7 +463,7 @@ Vagrant.configure("2") do |config|
 
     win11.vm.provision "shell", privileged: true, inline: <<-SHELL
       # $env:DEBUG=1
-      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd 0
     SHELL
     # win11.vm.provision "shell", privileged: true, inline: <<-SHELL
     #   # $env:DEBUG=1
@@ -472,7 +472,7 @@ Vagrant.configure("2") do |config|
 
     win11.vm.provision "extendfs", type: "shell", run: "never", privileged: true, inline: <<-SHELL
       # $env:DEBUG=1
-      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd
+      cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd 0
     SHELL
 
     win11.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win11' or 'vagrant rdp win11'."
