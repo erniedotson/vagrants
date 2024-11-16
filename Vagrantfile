@@ -39,7 +39,7 @@ end
 # Function to check whether VM was already provisioned
 ################################################################################
 def provisioned?(vm_name='default', provider='virtualbox')
-  File.exists?(".vagrant/machines/#{vm_name}/#{provider}/action_provision")
+  File.exist?(".vagrant/machines/#{vm_name}/#{provider}/action_provision")
 end
 #Usage:  config.ssh.username = 'custom_username' if provisioned?
 
@@ -50,7 +50,7 @@ def getVagrantFilePath()
   vagrant_dir = Dir.pwd
   done = false
   while (!done)
-    if File.exists?(File.join(vagrant_dir, "Vagrantfile"))
+    if File.exist?(File.join(vagrant_dir, "Vagrantfile"))
       done = true
     else
       tmp = Pathname.new(vagrant_dir).parent.to_s
@@ -195,8 +195,8 @@ if ( arg_up & arg_win10 )
   boxlist = `vagrant box list`
   registered = boxlist.include? boxname
   if (!registered)
-    if (!File.exists? boxfile)
-      if (!File.exists? zipfile)
+    if (!File.exist? boxfile)
+      if (!File.exist? zipfile)
         puts "Downloading #{zipfile}..."
         download(boxurl, zipfile)
       # else zipfile already exists
