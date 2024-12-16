@@ -281,8 +281,7 @@ Vagrant.configure("2") do |config|
   config.vagrant.plugins = [
     "nugrant",
     "vagrant-disksize",
-    "vagrant-reload",
-    "vagrant-vbguest"
+    "vagrant-reload"
   ]
 
   # Enable SSH Agent Forwarding
