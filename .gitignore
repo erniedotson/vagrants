@@ -1,6 +1,6 @@
 # General
 .vagrant/
-.vagrantuser
+vagrant.local.yml
 
 # Log files (if you are creating logs in debug mode, uncomment this)
 # *.logs

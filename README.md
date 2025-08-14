@@ -26,12 +26,12 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
 - [Customizing the vagrant VM](#customizing-the-vagrant-vm)
   * [Adding a Desktop GUI](#adding-a-desktop-gui)
 - [Recommended Plugins](#recommended-plugins)
-  * [Nugrant plugin](#nugrant-plugin)
+  * [Configuration System](#configuration-system)
   * [Vagrant Multi-PuTTY plugin](#vagrant-multi-putty-plugin)
   * [Vagrant Reload plugin](#vagrant-reload-plugin)
   * [Vagrant VBGuest plugin](#vagrant-vbguest-plugin)
 - [Troubleshooting](#troubleshooting)
-  * [Nugrant: Parameter 'vagrants' was not found](#nugrant-parameter-vagrants-was-not-found)
+  * [Configuration Issues](#configuration-issues)
 - [References](#references)
 
 <!-- tocstop -->
@@ -52,7 +52,7 @@ Care has been taken to write everything in a platform-independent way, but devel
 ### Quick Start
 
 1. Clone the repo: `git clone https://github.com/erniedotson/vagrants.git`
-1. Copy *.vagrantuser-sample* to *.vagrantuser*
+1. Optionally create *vagrant.local.yml* to customize VM settings
 1. Run vagrant status to get a list of *vagrant-name*s: `vagrant status`
 1. Vagrant up your OS of choice: `vagrant up <vagrant-name>`
 1. See table below for info on the Vagrants provided
@@ -400,7 +400,7 @@ Steps to get up and running:
 
 ## Customizing the vagrant VM
 
-The *.vagrantuser* file contains parameters for customizing each vagrant. You can modify this file to increase CPUs, RAM, or disk size, or more. Once you modify the *.vagrantuser* file you should re-run the provisioners by doing the following:
+The *vagrant.local.yml* file contains parameters for customizing each vagrant. You can create this file to override defaults in *vagrant.defaults.yml* to increase CPUs, RAM, or disk size, or more. Once you modify the *vagrant.local.yml* file you should re-run the provisioners by doing the following:
 
 ```bash
 vagrant halt <vagrant-name>
@@ -413,9 +413,9 @@ By default these vagrants are designed to be used *headless* and therefore most 
 
 To add a Desktop GUI first bring the vagrant up in it's default headless state. Then perform the following:
 
-Change the appropriate `gui: false` entry in the *.vagrantuser* file to `gui: true` to inform Virtualbox to display the console window when the VM boots.
+Change the appropriate `gui: false` entry in the *vagrant.local.yml* file to `gui: true` to inform Virtualbox to display the console window when the VM boots.
 
-Increase the `videomemory` option in the *.vagrantuser* file. Many are set to use 4 MB of video memory which just isn't enough for a Desktop GUI. I recommend bumping this up to 128 or 256 MB.
+Increase the `videomemory` option in the *vagrant.local.yml* file. Many are set to use 4 MB of video memory which just isn't enough for a Desktop GUI. I recommend bumping this up to 128 or 256 MB.
 
 Example of changes below:
 
@@ -433,16 +433,21 @@ Example of changes below:
 +       videomemory: 256
 ```
 
-Once you've made changes to the *.vagrantuser* file, you can install the
+Once you've made changes to the *vagrant.local.yml* file, you can install the
 Desktop GUI by running `vagrant provision <vagrant-name> --provision-with gui`
 
 Once that installs the Desktop GUI, it will likely take one more reboot for the GUI to be enabled: `vagrant reload <vagrant-name>`
 
 ## Recommended Plugins
 
-### Nugrant plugin
+### Configuration System
 
-[Vagrant Nugrant plugin](https://github.com/maoueh/nugrant) can be used to define local configuration in a `.vagrantuser` file.
+This repository uses a built-in configuration system:
+
+- *vagrant.defaults.yml* - Default settings for all VMs (committed to git)
+- *vagrant.local.yml* - Optional user overrides (gitignored, create as needed)
+
+No setup required - the system works with sensible defaults immediately after cloning.
 
 ### Vagrant Multi-PuTTY plugin
 
@@ -460,33 +465,18 @@ If you are on a Windows host, [Vagrant Multi-PuTTY plugin](https://github.com/ni
 
 ## Troubleshooting
 
-### Nugrant: Parameter 'vagrants' was not found
+### Configuration Issues
 
-**PROBLEM:** On any/all `vagrant` commands you see an error message smilar to this:
+**PROBLEM:** Configuration values not being applied or errors loading configuration.
 
-```text
-Vagrant failed to initialize at a very early stage:
+**CAUSE:** Issues with *vagrant.local.yml* syntax or structure.
 
-There was an error loading a Vagrantfile. The file being loaded
-and the error message are shown below. This is usually caused by
-a syntax error.
-
-Path: <provider config: virtualbox>
-Line number: 18
-Message: Nugrant::Vagrant::Errors::ParameterNotFoundError: Nugrant: Parameter 'vagrants' was not found, is it defined in
-your .vagrantuser file? Here where we think the error
-could be in your Vagrantfile:
-```
-
-**CAUSE:** This is caused by the Nugrant plugin failing to load values from the *.vagrantuser* file.
-
-**SOLUTION:** To resolve, copy *.vagrantuser-sample* to *.vagrantuser*
+**SOLUTION:** Verify your *vagrant.local.yml* follows proper YAML syntax and structure. Reference *vagrant.defaults.yml* for the correct format. The system works with defaults if no local config file exists.
 
 ## References
 
 - [Vagrant](https://www.vagrantup.com/) - Development Environments Made Easy
 - [Vagrant Plugins](https://github.com/hashicorp/vagrant/wiki/Available-Vagrant-Plugins) - A list of Vagrant Plugins
-- [Vagrant Nugrant plugin](https://github.com/maoueh/nugrant) - a Vagrant plug-in that will enhance Vagrantfile to allow user specific configuration values
 - [Vagrant Multi-PuTTY plugin](https://github.com/nickryand/vagrant-multi-putty) - This plugin allows you to use putty to ssh into VMs.
 - [Vagrant Reload plugin](https://github.com/aidanns/vagrant-reload) - "Reload a VM as a provisioning step."
 - [Vagrant VBGuest plugin](https://github.com/dotless-de/vagrant-vbguest) - automatically update VirtualBox guest additions if necessary

@@ -4,6 +4,61 @@ require 'pathname'
 require "open-uri"
 require "fileutils"
 require 'zip'
+require 'yaml'
+
+################################################################################
+# Purpose    : Deep merge two hashes (for configuration merging)
+# Parameters : defaults - the default configuration hash
+#              overrides - the user override hash
+# Returns    : merged hash with overrides taking precedence
+################################################################################
+def deep_merge(defaults, overrides)
+  return defaults if overrides.nil?
+  return overrides if defaults.nil?
+
+  defaults.merge(overrides) do |key, default_val, override_val|
+    if default_val.is_a?(Hash) && override_val.is_a?(Hash)
+      deep_merge(default_val, override_val)
+    else
+      override_val
+    end
+  end
+end
+
+################################################################################
+# Purpose    : Load user configuration with defaults fallback
+# Parameters : none
+# Returns    : configuration hash with user overrides merged over defaults
+################################################################################
+def load_user_config
+  # Load defaults from defaults file
+  defaults = {}
+  if File.exist?('vagrant.defaults.yml')
+    defaults = YAML.load_file('vagrant.defaults.yml') || {}
+  end
+
+  # Load user overrides if file exists
+  user_config = {}
+  if File.exist?('vagrant.local.yml')
+    user_config = YAML.load_file('vagrant.local.yml') || {}
+  end
+
+  # Merge user config over defaults
+  return deep_merge(defaults, user_config)
+end
+
+################################################################################
+# Purpose    : Get configuration value for a VM with fallback to defaults
+# Parameters : vm_name - the name of the VM
+#              key - the configuration key to retrieve
+#              default - fallback value if not found
+# Returns    : configuration value
+################################################################################
+def get_vm_config(vm_name, key, default = nil)
+  value = USER_CONFIG.dig('vagrants', vm_name.to_s, key.to_s)
+  return value unless value.nil?
+  return default
+end
 
 ################################################################################
 # Purpose    : Download a file from the web
@@ -274,12 +329,16 @@ VMCONFIGURATION = {
 }
 
 ################################################################################
+# Load user configuration
+################################################################################
+USER_CONFIG = load_user_config
+
+################################################################################
 # Configure Vagrant
 ################################################################################
 Vagrant.configure("2") do |config|
 
   config.vagrant.plugins = [
-    "nugrant",
     "vagrant-disksize",
     "vagrant-reload"
   ]
@@ -295,28 +354,28 @@ Vagrant.configure("2") do |config|
       # config.vbguest.auto_update = false
       config.vm.box = "#{vmconfig[:box]}"
       config.vm.hostname = "#{vmconfig[:name]}"
-      config.disksize.size = eval("config.user.vagrants.#{vmconfig[:name]}.disksize")
-      config.vm.boot_timeout = eval("config.user.vagrants.#{vmconfig[:name]}.boot_timeout")
+      config.disksize.size = get_vm_config(vmconfig[:name], 'disksize', '40GB')
+      config.vm.boot_timeout = get_vm_config(vmconfig[:name], 'boot_timeout', 300)
       config.vm.provider "virtualbox" do |vb|
-        vb.cpus = eval("config.user.vagrants.#{vmconfig[:name]}.cpus")
-        if eval("config.user.vagrants.#{vmconfig[:name]}.disable_audio")
+        vb.cpus = get_vm_config(vmconfig[:name], 'cpus', 1)
+        if get_vm_config(vmconfig[:name], 'disable_audio', true)
           # Disable audio card to avoid interference with host audio
           vb.customize ["modifyvm", :id, "--audio", "none"]
         end
-        if eval("config.user.vagrants.#{vmconfig[:name]}.enable_clipboard")
+        if get_vm_config(vmconfig[:name], 'enable_clipboard', false)
           # Enable bidirectional Clipboard
           vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
         end
-        if eval("config.user.vagrants.#{vmconfig[:name]}.enable_draganddrop")
+        if get_vm_config(vmconfig[:name], 'enable_draganddrop', false)
           # Enable bidirectional file drag and drop
           vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
         end
-        vb.gui = eval("config.user.vagrants.#{vmconfig[:name]}.gui")
+        vb.gui = get_vm_config(vmconfig[:name], 'gui', false)
         #vb.memory = "2048"
-        vb.memory = "#{eval("config.user.vagrants.#{vmconfig[:name]}.memory")}"
+        vb.memory = get_vm_config(vmconfig[:name], 'memory', 1024).to_s
 
         #vb.customize ["modifyvm", :id, "--vram", "256"]
-        vb.customize ["modifyvm", :id, "--vram", "#{eval("config.user.vagrants.#{vmconfig[:name]}.videomemory")}"]
+        vb.customize ["modifyvm", :id, "--vram", get_vm_config(vmconfig[:name], 'videomemory', 16).to_s]
       end
 
       unless vmconfig[:mounts].nil?
@@ -372,28 +431,28 @@ Vagrant.configure("2") do |config|
     win10.vm.network :forwarded_port, guest: 5985, host: 5985, host_ip: "127.0.0.1", id: "winrm", auto_correct: true
     win10.vm.network :forwarded_port, host: 33389, guest: 3389, host_ip: "127.0.0.1", id: "rdp", auto_correct: true
     win10.vm.hostname = "win10"
-    win10.disksize.size = config.user.vagrants.win10.disksize
-    win10.vm.boot_timeout = config.user.vagrants.win10.boot_timeout
+    win10.disksize.size = get_vm_config('win10', 'disksize', '60GB')
+    win10.vm.boot_timeout = get_vm_config('win10', 'boot_timeout', 500)
     win10.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.win10.cpus
-      if config.user.vagrants.win10.disable_audio
+      vb.cpus = get_vm_config('win10', 'cpus', 2)
+      if get_vm_config('win10', 'disable_audio', true)
         # Disable audio card to avoid interference with host audio
         vb.customize ["modifyvm", :id, "--audio", "none"]
       end
-      if config.user.vagrants.win10.enable_clipboard
+      if get_vm_config('win10', 'enable_clipboard', false)
         # Enable bidirectional Clipboard
         vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
       end
-      if config.user.vagrants.win10.enable_draganddrop
+      if get_vm_config('win10', 'enable_draganddrop', false)
         # Enable bidirectional file drag and drop
         vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
       end
-      vb.gui = config.user.vagrants.win10.gui
+      vb.gui = get_vm_config('win10', 'gui', false)
       #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.win10.memory}"
+      vb.memory = get_vm_config('win10', 'memory', 2048).to_s
 
       #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.win10.videomemory}"]
+      vb.customize ["modifyvm", :id, "--vram", get_vm_config('win10', 'videomemory', 256).to_s]
     end
 
     # Use Windows Remote Management instead of default SSH connections
@@ -436,28 +495,28 @@ Vagrant.configure("2") do |config|
     win11.vm.box = "gusztavvargadr/windows-11"
     win11.vm.guest = :windows
     win11.vm.hostname = "win11"
-    win11.disksize.size = config.user.vagrants.win11.disksize
-    win11.vm.boot_timeout = config.user.vagrants.win11.boot_timeout
+    win11.disksize.size = get_vm_config('win11', 'disksize', '127GB')
+    win11.vm.boot_timeout = get_vm_config('win11', 'boot_timeout', 600)
     win11.vm.provider "virtualbox" do |vb|
-      vb.cpus = config.user.vagrants.win11.cpus
-      if config.user.vagrants.win11.disable_audio
+      vb.cpus = get_vm_config('win11', 'cpus', 2)
+      if get_vm_config('win11', 'disable_audio', true)
         # Disable audio card to avoid interference with host audio
         vb.customize ["modifyvm", :id, "--audio", "none"]
       end
-      if config.user.vagrants.win11.enable_clipboard
+      if get_vm_config('win11', 'enable_clipboard', false)
         # Enable bidirectional Clipboard
         vb.customize ["modifyvm", :id, "--clipboard",   "bidirectional"]
       end
-      if config.user.vagrants.win11.enable_draganddrop
+      if get_vm_config('win11', 'enable_draganddrop', false)
         # Enable bidirectional file drag and drop
         vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
       end
-      vb.gui = config.user.vagrants.win11.gui
+      vb.gui = get_vm_config('win11', 'gui', false)
       #vb.memory = "2048"
-      vb.memory = "#{config.user.vagrants.win11.memory}"
+      vb.memory = get_vm_config('win11', 'memory', 4096).to_s
 
       #vb.customize ["modifyvm", :id, "--vram", "256"]
-      vb.customize ["modifyvm", :id, "--vram", "#{config.user.vagrants.win11.videomemory}"]
+      vb.customize ["modifyvm", :id, "--vram", get_vm_config('win11', 'videomemory', 256).to_s]
     end
 
     win11.vm.provision "shell", privileged: true, inline: <<-SHELL
