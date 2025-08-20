@@ -122,11 +122,11 @@ vagrants:
     win10:
         cpus: 2
         disable_audio: true
-        disksize: 60GB
+        disksize: 128GB
         enable_clipboard: false
         enable_draganddrop: false
         gui: false
-        memory: 2048
+        memory: 4096
         videomemory: 256
         boot_timeout: 500
     win11:

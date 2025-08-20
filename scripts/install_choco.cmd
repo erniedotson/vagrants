@@ -23,7 +23,7 @@ GOTO REBOOT
 :CHOCO_END
 
 rem Let Chocolatey manage itself
-cinst -y chocolatey %CHOCO_PARAM_LIMITOUTPUT% %CHOCO_PARAM_NOOP%
+choco install -y chocolatey %CHOCO_PARAM_LIMITOUTPUT% %CHOCO_PARAM_NOOP%
 if "%ERRORLEVEL%"=="%RC_REBOOT_REQUIRED%" GOTO REBOOT
 if "%ERRORLEVEL%" NEQ "0" (ECHO ERROR: Failed to install one or more packages&&GOTO ERR)
 

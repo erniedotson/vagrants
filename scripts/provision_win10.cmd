@@ -37,16 +37,29 @@ REM **************************************************************************
 REM **************************************************************************
 
 REM **************************************************************************
-REM *** Install Chocolatey
+REM MARK: Set autologin
 REM **************************************************************************
-echo Installing chocolatey...
-CALL %SCRIPT_NAME%\..\install_choco.cmd
-if "%errorlevel%" NEQ "0" GOTO ERR
+echo Adding registry keys for autologin...
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_SZ /d 1 /f || ( ECHO ERROR: Failed to configure autologin.&&GOTO ERR)
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultUserName /t REG_SZ /d vagrant /f || ( ECHO ERROR: Failed to configure autologin Username.&&GOTO ERR)
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /t REG_SZ /d vagrant /f || ( ECHO ERROR: Failed to configure autologin Password.&&GOTO ERR)
 
 REM **************************************************************************
-REM *** Install packages using Chocolaty Package Manager (choco/cinst)...
+REM MARK: Install Chocolatey
 REM **************************************************************************
-cinst -y chocolatey %CHOCO_PARAM_LIMITOUTPUT% %CHOCO_PARAM_NOOP%
+where choco.exe >nul 2>&1
+if "%errorlevel%" EQU "0" (
+    echo Chocolatey is already installed, skipping installation...
+) else (
+    echo Installing chocolatey...
+    CALL "%~dp0install_choco.cmd"
+    if "%errorlevel%" NEQ "0" GOTO ERR
+)
+
+REM **************************************************************************
+REM MARK: Install packages
+REM **************************************************************************
+choco install -y chocolatey %CHOCO_PARAM_LIMITOUTPUT% %CHOCO_PARAM_NOOP%
 if "%ERRORLEVEL%"=="%RC_REBOOT_REQUIRED%" GOTO REBOOT
 if "%ERRORLEVEL%" NEQ "0" (ECHO ERROR: Chocolatey failed to install a package&&GOTO ERR)
 
@@ -54,6 +67,8 @@ REM The end
 ECHO.
 ECHO %SCRIPT_NAME% exection has completed successfully!
 GOTO END
+
+REM MARK: Error handling
 
 REM **************************************************************************
 :REBOOT

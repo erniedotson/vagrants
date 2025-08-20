@@ -366,24 +366,15 @@ Steps to get up and running:
 | Name | Value |
 | ---- | ----- |
 | Vagrant name | win10 |
-| Vagrant box | [Microsoft's Edge Developer Windows 10 vagrant image](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/) |
-| Credentials (e.g. for GUI Login) | Initial: IEUser/Passw0rd!<br/>After provisioning: vagrant/vagrant |
+| Vagrant box | [gusztavvargadr/windows-10](https://app.vagrantup.com/gusztavvargadr/boxes/windows-10) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
 
-On or around April 10, 2020, it seems that the official [Microsoft/EdgeOnWindows10](https://app.vagrantup.com/Microsoft/boxes/EdgeOnWindows10) box has been moved or removed from it's Azure cloud storage location. It remains unavailable as of writing (September 28, 2020). If you do not already have this box in your local vagrant box cache, you will get a 404 error attempting to download.
+Steps to get up and running:
 
-Instead, this `win10` vagrant will download [Microsoft's Edge Developer Windows 10 vagrant image](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/) and import it into the vagrant box list.
-
-1. Create the vagrant VM by performing the following on the host computer:
-    1. Execute the command `vagrant up win10`. This will create the VM and start it for you.
-    1. After some time, you will see an error that Vagrant was unable to communicate with the machine. This is because Microsoft did not properly configure the 'box' for remote management. We will need to do this manually.
-1. Configure Remote Management on the guest VM:
-    1. **On the host**: Open Oracle VirtualBox Manager 'as an Administrator'.
-    1. **On the host**: Right click on the win10 virtual machine that vagrant has created for you and click `Show` from the context menu. This will show you the console of the virtual machine. If the guest is not already logged in use `IEUser` for the username and `Passw0rd!` for the password.
-    1. **On the guest**: In Explorer, browse to `\\vboxsvr\vagrant\scripts`
-    1. **On the guest**: Execute the script `vagrant_Microsoft-EdgeOnWindows10_bootstrap.cmd` 'as Administrator'. The guest will be configured for WinRM and RDP and then powered off. The username and password will both be changed to `vagrant`
-    1. *Optional:* **On the host**: Close the VirtualBox Manager window.
-1. Perform another `vagrant up win10` command and this time vagrant will begin provisioning the guest.
-1. `vagrant rdp win10` to connect, etc. etc. Use username, *vagrant*, and password, *vagrant*.
+1. Create the VM: `vagrant up win10`
+2. Due to the varying number of updates and rollups and their restart requirements, you may see a message indicating that a reboot is required. If you do, you should power off and start again to continue provisioning: `vagrant halt win10 && vagrant up win10 --provision`
+3. Repeat step 2 until the VM comes up without errors.
+4. Begin using the VM: `vagrant powershell win10` or `vagrant rdp win10`
 
 ### Windows 11
 

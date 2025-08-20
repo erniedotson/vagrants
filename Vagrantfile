@@ -194,7 +194,6 @@ end
 $arg_destroy = false
 $arg_force = false
 $arg_up = false
-$arg_win10 = false
 for i in 0 ... ARGV.length
   if "#{ARGV[i]}" == "destroy"
     arg_destroy = true
@@ -204,9 +203,6 @@ for i in 0 ... ARGV.length
   end
   if "#{ARGV[i]}" == "up"
     arg_up = true
-  end
-  if "#{ARGV[i]}" == "win10"
-    arg_win10 = true
   end
 end
 
@@ -233,42 +229,6 @@ end
 vagrantFilePath = getVagrantFilePath
 #puts "vagrantFilePath returned: #{vagrantFilePath}"
 
-################################################################################
-# If we are up'ing win10, download and register the box, if necessary
-################################################################################
-# TODO: Refactor
-if ( arg_up & arg_win10 )
-  # For more/updated windows boxes, refer to:
-  # https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
-  # Note: Boxes added from file cannot have a box version associated. We
-  #       will append it to the name
-  boxname = "win10-20190311"
-  boxurl = "https://az792536.vo.msecnd.net/vms/VMBuild_20190311/Vagrant/MSEdge/MSEdge.Win10.Vagrant.zip"
-  zipfile = "./MSEdge.Win10.Vagrant.zip"
-  boxfile = "./MSEdge - Win10.box"
-
-  boxlist = `vagrant box list`
-  registered = boxlist.include? boxname
-  if (!registered)
-    if (!File.exist? boxfile)
-      if (!File.exist? zipfile)
-        puts "Downloading #{zipfile}..."
-        download(boxurl, zipfile)
-      # else zipfile already exists
-      end
-      puts "Extracting #{zipfile}..."
-      extract_zip(zipfile, './')
-      File.delete(zipfile)
-    # else boxfile already exists
-    end
-    puts "Registering new vagrant box #{boxfile}..."
-    if (!system("vagrant box add --provider virtualbox #{boxname} \"#{boxfile}\""))
-      exit 1
-    end
-    File.delete(boxfile)
-  end
-  # else win10 box already registered
-end
 
 # Refrence: https://github.com/martinandersson/dev-mini/blob/master/Vagrantfile
 
@@ -425,8 +385,7 @@ Vagrant.configure("2") do |config|
   # Win10
   ##############################################################################
   config.vm.define "win10", autostart: false do |win10|
-    # win10.vm.box = "Microsoft/EdgeOnWindows10"
-    win10.vm.box = "win10-20190311"
+    win10.vm.box = "gusztavvargadr/windows-10"
     win10.vm.guest = :windows
     win10.vm.network :forwarded_port, guest: 5985, host: 5985, host_ip: "127.0.0.1", id: "winrm", auto_correct: true
     win10.vm.network :forwarded_port, host: 33389, guest: 3389, host_ip: "127.0.0.1", id: "rdp", auto_correct: true
@@ -457,19 +416,9 @@ Vagrant.configure("2") do |config|
 
     # Use Windows Remote Management instead of default SSH connections
     win10.vm.communicator = "winrm"
-    # Note: Provision script will change the UN/PW in the to vagrant/vagrant
-    #       and leave a breadcrumb indicating so. Check for that breadcrumb
-    #       and determine which UN/PW to use.
-    if (File.exist?(File.join(vagrantFilePath, '.vagrant/machines/win10/virtualbox/username')))
-      win10.winrm.username = "vagrant"
-    else
-      win10.winrm.username = "IEUser"
-    end
-    if (File.exist?(File.join(vagrantFilePath, '.vagrant/machines/win10/virtualbox/userpass')))
-      win10.winrm.password = "vagrant"
-    else
-      win10.winrm.password = "Passw0rd!"
-    end
+    # gusztavvargadr/windows-10 uses standard vagrant credentials
+    win10.winrm.username = "vagrant"
+    win10.winrm.password = "vagrant"
 
     win10.vm.provision "shell", privileged: true, inline: <<-SHELL
       # $env:DEBUG=1
@@ -485,7 +434,7 @@ Vagrant.configure("2") do |config|
       cmd.exe /c \\vagrant\\scripts\\extend_winfs.cmd 0
     SHELL
 
-    win10.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win10' or 'vagrant rdp win10' and using username '#{win10.winrm.username}' and password '#{win10.winrm.password}'."
+    win10.vm.post_up_message = "VM is ready. You can access by typing 'vagrant powershell win10' or 'vagrant rdp win10' and using username 'vagrant' and password 'vagrant'."
   end
 
   ##############################################################################
