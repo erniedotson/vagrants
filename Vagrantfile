@@ -61,6 +61,52 @@ def get_vm_config(vm_name, key, default = nil)
 end
 
 ################################################################################
+# Purpose    : Detect the active Vagrant provider
+# Parameters : none
+# Returns    : provider name as string
+################################################################################
+def get_active_provider
+  # Check command line arguments for provider
+  provider = nil
+  for i in 0 ... ARGV.length
+    if ARGV[i] == "--provider" && i + 1 < ARGV.length
+      provider = ARGV[i + 1]
+      break
+    elsif ARGV[i].start_with?("--provider=")
+      provider = ARGV[i].split("=", 2)[1]
+      break
+    end
+  end
+
+  # Default to virtualbox if no provider specified
+  return provider || "virtualbox"
+end
+
+################################################################################
+# Purpose    : Configure disk size based on provider
+# Parameters : config - Vagrant config object
+#              vm_name - the name of the VM
+#              disksize - desired disk size (e.g., "40GB")
+# Returns    : none
+################################################################################
+def configure_disk_size(config, vm_name, disksize)
+  provider = get_active_provider
+
+  case provider
+  when "virtualbox"
+    # Use vagrant-disksize plugin for VirtualBox
+    config.disksize.size = disksize
+  when "hyperv"
+    # Use native Vagrant disk configuration for Hyper-V
+    config.vm.disk :disk, size: disksize, primary: true
+  else
+    # Try vagrant-disksize plugin as fallback, but warn
+    puts "WARNING: Provider '#{provider}' may not support disksize configuration"
+    config.disksize.size = disksize if defined?(config.disksize)
+  end
+end
+
+################################################################################
 # Purpose    : Download a file from the web
 # Paramaters : url - the URL to download
 #              path - the path/file to save as
@@ -298,10 +344,18 @@ USER_CONFIG = load_user_config
 ################################################################################
 Vagrant.configure("2") do |config|
 
-  config.vagrant.plugins = [
-    "vagrant-disksize",
-    "vagrant-reload"
-  ]
+  # Conditionally require plugins based on provider
+  provider = get_active_provider
+  if provider == "virtualbox"
+    config.vagrant.plugins = [
+      "vagrant-disksize",
+      "vagrant-reload"
+    ]
+  else
+    config.vagrant.plugins = [
+      "vagrant-reload"
+    ]
+  end
 
   # Enable SSH Agent Forwarding
   config.ssh.forward_agent = true
@@ -314,8 +368,13 @@ Vagrant.configure("2") do |config|
       # config.vbguest.auto_update = false
       config.vm.box = "#{vmconfig[:box]}"
       config.vm.hostname = "#{vmconfig[:name]}"
-      config.disksize.size = get_vm_config(vmconfig[:name], 'disksize', '40GB')
+
+      # Configure disk size based on provider
+      disksize = get_vm_config(vmconfig[:name], 'disksize', '40GB')
+      configure_disk_size(config, vmconfig[:name], disksize)
+
       config.vm.boot_timeout = get_vm_config(vmconfig[:name], 'boot_timeout', 300)
+      # VirtualBox provider configuration
       config.vm.provider "virtualbox" do |vb|
         vb.cpus = get_vm_config(vmconfig[:name], 'cpus', 1)
         if get_vm_config(vmconfig[:name], 'disable_audio', true)
@@ -331,17 +390,40 @@ Vagrant.configure("2") do |config|
           vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
         end
         vb.gui = get_vm_config(vmconfig[:name], 'gui', false)
-        #vb.memory = "2048"
         vb.memory = get_vm_config(vmconfig[:name], 'memory', 1024).to_s
-
-        #vb.customize ["modifyvm", :id, "--vram", "256"]
         vb.customize ["modifyvm", :id, "--vram", get_vm_config(vmconfig[:name], 'videomemory', 16).to_s]
       end
 
+      # Hyper-V provider configuration
+      config.vm.provider "hyperv" do |hv|
+        hv.cpus = get_vm_config(vmconfig[:name], 'cpus', 1)
+        hv.memory = get_vm_config(vmconfig[:name], 'memory', 1024)
+        hv.maxmemory = get_vm_config(vmconfig[:name], 'maxmemory', nil)
+        hv.linked_clone = get_vm_config(vmconfig[:name], 'linked_clone', false)
+        hv.vmname = "#{vmconfig[:name]}-#{Time.now.to_i}"
+      end
+
+      # Configure synced folders based on provider and mount configuration
       unless vmconfig[:mounts].nil?
         vmconfig[:mounts].each do |mount|
-          # config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
-          config.vm.synced_folder mount[:hostPath], mount[:guestPath], type: mount[:type]
+          case get_active_provider
+          when "virtualbox"
+            config.vm.synced_folder mount[:hostPath], mount[:guestPath], type: mount[:type]
+          when "hyperv"
+            # Hyper-V uses SMB for synced folders
+            config.vm.synced_folder mount[:hostPath], mount[:guestPath], type: "smb"
+          else
+            # Default synced folder (rsync or native)
+            config.vm.synced_folder mount[:hostPath], mount[:guestPath]
+          end
+        end
+      else
+        # Default synced folder for all VMs if no custom mounts specified
+        case get_active_provider
+        when "hyperv"
+          config.vm.synced_folder ".", "/vagrant", type: "smb"
+        else
+          # VirtualBox and others use default behavior
         end
       end
 
@@ -390,8 +472,13 @@ Vagrant.configure("2") do |config|
     win10.vm.network :forwarded_port, guest: 5985, host: 5985, host_ip: "127.0.0.1", id: "winrm", auto_correct: true
     win10.vm.network :forwarded_port, host: 33389, guest: 3389, host_ip: "127.0.0.1", id: "rdp", auto_correct: true
     win10.vm.hostname = "win10"
-    win10.disksize.size = get_vm_config('win10', 'disksize', '60GB')
+
+    # Configure disk size based on provider
+    disksize = get_vm_config('win10', 'disksize', '60GB')
+    configure_disk_size(win10, 'win10', disksize)
+
     win10.vm.boot_timeout = get_vm_config('win10', 'boot_timeout', 500)
+    # VirtualBox provider configuration for Windows 10
     win10.vm.provider "virtualbox" do |vb|
       vb.cpus = get_vm_config('win10', 'cpus', 2)
       if get_vm_config('win10', 'disable_audio', true)
@@ -407,11 +494,17 @@ Vagrant.configure("2") do |config|
         vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
       end
       vb.gui = get_vm_config('win10', 'gui', false)
-      #vb.memory = "2048"
       vb.memory = get_vm_config('win10', 'memory', 2048).to_s
-
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
       vb.customize ["modifyvm", :id, "--vram", get_vm_config('win10', 'videomemory', 256).to_s]
+    end
+
+    # Hyper-V provider configuration for Windows 10
+    win10.vm.provider "hyperv" do |hv|
+      hv.cpus = get_vm_config('win10', 'cpus', 2)
+      hv.memory = get_vm_config('win10', 'memory', 2048)
+      hv.maxmemory = get_vm_config('win10', 'maxmemory', nil)
+      hv.linked_clone = get_vm_config('win10', 'linked_clone', false)
+      hv.vmname = "win10-#{Time.now.to_i}"
     end
 
     # Use Windows Remote Management instead of default SSH connections
@@ -444,8 +537,13 @@ Vagrant.configure("2") do |config|
     win11.vm.box = "gusztavvargadr/windows-11"
     win11.vm.guest = :windows
     win11.vm.hostname = "win11"
-    win11.disksize.size = get_vm_config('win11', 'disksize', '127GB')
+
+    # Configure disk size based on provider
+    disksize = get_vm_config('win11', 'disksize', '127GB')
+    configure_disk_size(win11, 'win11', disksize)
+
     win11.vm.boot_timeout = get_vm_config('win11', 'boot_timeout', 600)
+    # VirtualBox provider configuration for Windows 11
     win11.vm.provider "virtualbox" do |vb|
       vb.cpus = get_vm_config('win11', 'cpus', 2)
       if get_vm_config('win11', 'disable_audio', true)
@@ -461,11 +559,17 @@ Vagrant.configure("2") do |config|
         vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
       end
       vb.gui = get_vm_config('win11', 'gui', false)
-      #vb.memory = "2048"
       vb.memory = get_vm_config('win11', 'memory', 4096).to_s
-
-      #vb.customize ["modifyvm", :id, "--vram", "256"]
       vb.customize ["modifyvm", :id, "--vram", get_vm_config('win11', 'videomemory', 256).to_s]
+    end
+
+    # Hyper-V provider configuration for Windows 11
+    win11.vm.provider "hyperv" do |hv|
+      hv.cpus = get_vm_config('win11', 'cpus', 2)
+      hv.memory = get_vm_config('win11', 'memory', 4096)
+      hv.maxmemory = get_vm_config('win11', 'maxmemory', nil)
+      hv.linked_clone = get_vm_config('win11', 'linked_clone', false)
+      hv.vmname = "win11-#{Time.now.to_i}"
     end
 
     win11.vm.provision "shell", privileged: true, inline: <<-SHELL
