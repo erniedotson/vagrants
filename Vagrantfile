@@ -78,6 +78,9 @@ def get_active_provider
     end
   end
 
+  # Check environment variable if no command line provider specified
+  provider ||= ENV['VAGRANT_DEFAULT_PROVIDER']
+
   # Default to virtualbox if no provider specified
   return provider || "virtualbox"
 end
