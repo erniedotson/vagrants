@@ -263,14 +263,14 @@ VMCONFIGURATION = {
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
 }, {
-    name: 'centos8s',
-    box: 'generic/centos8s',
-    mounts: [
-      { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
-    ]
+  name: 'rocky8',
+  box: 'generic/rocky8',
+  mounts: [
+    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
+  ]
 }, {
-  name: 'centos8',
-  box: 'centos/8',
+  name: 'alma8',
+  box: 'generic/alma8',
   mounts: [
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]

@@ -17,8 +17,8 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Debian 12](#debian-12)
   * [Debian 11](#debian-11)
   * [Debian 10](#debian-10)
-  * [CentOS 8 Stream](#centos-8-stream)
-  * [CentOS 8 -- DEPRECATED](#centos-8----deprecated)
+  * [Rocky Linux 8](#rocky-linux-8)
+  * [AlmaLinux 8](#almalinux-8)
   * [CentOS 7](#centos-7)
   * [CentOS 6](#centos-6)
   * [Windows 10](#windows-10)
@@ -192,83 +192,35 @@ Steps to get up and running:
 1. Create the VM: `vagrant up debian10`
 2. Begin using the VM: `vagrant ssh debian10`
 
-### CentOS 8 Stream
+### Rocky Linux 8
+
+Rocky Linux is a 1:1 bug-for-bug compatible replacement for Red Hat Enterprise Linux (RHEL) 8.
 
 | Name | Value |
 | ---- | ----- |
-| Vagrant name | centos8s |
-| Vagrant box | [generic/centos8s](https://app.vagrantup.com/generic/boxes/centos8s) |
+| Vagrant name | rocky8 |
+| Vagrant box | [generic/rocky8](https://app.vagrantup.com/generic/boxes/rocky8) |
 | Credentials (e.g. for GUI Login) | vagrant/vagrant |
 
 Steps to get up and running:
 
-1. Create the VM: `vagrant up centos8`
-2. Begin using the VM: `vagrant ssh centos8s`
+1. Create the VM: `vagrant up rocky8`
+2. Begin using the VM: `vagrant ssh rocky8`
 
-### CentOS 8 -- DEPRECATED
+### AlmaLinux 8
 
-This vagrant is deprecated and will be removed soon. You should use the centos8s one instead.
+AlmaLinux is an ABI-compatible replacement for Red Hat Enterprise Linux (RHEL) 8.
 
 | Name | Value |
 | ---- | ----- |
-| Vagrant name | centos8 |
-| Vagrant box | [centos/8](https://app.vagrantup.com/centos/boxes/8) |
-| Credentials (e.g. for GUI Login) | root/vagrant |
+| Vagrant name | alma8 |
+| Vagrant box | [generic/alma8](https://app.vagrantup.com/generic/boxes/alma8) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
 
 Steps to get up and running:
 
-1. Create the VM: `vagrant up centos8`
-2. You may encounter an error similar to:
-
-    ```text
-    Error: Failed to download metadata for repo 'appstream': Cannot prepare internal mirrorlist: No URLs in mirrorlist
-    ```
-
-    **CAUSE:** CentOS 8 is [EOL on December 31, 2021](https://www.centos.org/centos-linux-eol/).
-
-    **SOLUTION:** Migrate to CentOS Stream 8.
-
-    ```bash
-    vagrant ssh centos8 -c 'sudo dnf --disablerepo "*" --enablerepo=extras swap centos-linux-repos centos-stream-repos -y'
-    vagrant ssh centos8 -c 'sudo dnf distro-sync -y'
-    vagrant reload centos8 --provision
-    ```
-
-3. You may encounter an error similar to:
-
-    ```text
-    ==> centos8: Checking for guest additions in VM...
-        centos8: No guest additions were detected on the base box for this VM! Guest
-        centos8: additions are required for forwarded ports, shared folders, host only
-        centos8: networking, and more. If SSH fails on this machine, please install
-        centos8: the guest additions and repackage the box to continue.
-        centos8:
-        centos8: This is not an error message; everything may continue to work properly,
-        centos8: in which case you may ignore this message.
-    The following SSH command responded with a non-zero exit status.
-    Vagrant assumes that this means the command failed!
-
-    umount /mnt
-
-    Stdout from the command:
-
-
-
-    Stderr from the command:
-
-    umount: /mnt: not mounted.
-    ```
-
-    **CAUSE:** This is caused because by the *VirtualBox Guest Additions* are not present in the guest VM but they are required to share folders between the host and the guest. The *vagrant-vbguest* plugin attempts to install the *VirtualBox Guest Additions* but fails to do so because the necessary packages are not present on the guest VM.
-
-    **SOLUTION:** To resolve the issue you need to install the necessary packages.
-
-    ```bash
-    vagrant ssh centos8 -c 'sudo yum update -y'
-    vagrant reload centos8 --provision
-    ```
-
-4. Begin using the VM: `vagrant ssh centos8`
+1. Create the VM: `vagrant up alma8`
+2. Begin using the VM: `vagrant ssh alma8`
 
 ### CentOS 7
 

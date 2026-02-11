@@ -31,11 +31,11 @@
     become: true
     command: "init 5"
 
-- name: Install Desktop on CentOS Systems
-  hosts: centos*
+- name: Install Desktop on RHEL-based Systems
+  hosts: centos*:rocky*:alma*
   tasks:
 
-  - name: Install the 'Gnome desktop' package group for CentOS 8
+  - name: Install the 'Gnome desktop' package group for RHEL 8 (CentOS 8/Rocky 8/AlmaLinux 8)
     # sudo yum -y groupinstall "Gnome desktop"
     become: true
     yum:
@@ -51,7 +51,7 @@
       state: present
     when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 7
 
-  - name: Set graphical boot mode to default at boot for CentOS 8/7
+  - name: Set graphical boot mode to default at boot for RHEL 8/7
     become: true
     command: systemctl set-default graphical.target
     when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int >= 7
@@ -73,6 +73,6 @@
       replace: "id:5:initdefault:"
     when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version']|int == 6
 
-  - name: Initialize graphical mode for CentOS
+  - name: Initialize graphical mode for RHEL-based systems
     become: true
     command: "init 5"
