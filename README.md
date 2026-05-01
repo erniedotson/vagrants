@@ -10,6 +10,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Install pre-requisites](#install-pre-requisites)
   * [Quick Start](#quick-start)
 - [Vagrant Operating Systems](#vagrant-operating-systems)
+  * [Ubuntu 24.04 LTS (Noble Numbat) 64-bit](#ubuntu-2404-lts-noble-numbat-64-bit)
   * [Ubuntu 22.04 LTS (Jammy Jellyfish) 64-bit](#ubuntu-2204-lts-jammy-jellyfish-64-bit)
   * [Ubuntu 20.04 LTS (Focal Fossa) 64-bit](#ubuntu-2004-lts-focal-fossa-64-bit)
   * [Ubuntu 18.04 LTS (Bionic Beaver) 64-bit](#ubuntu-1804-lts-bionic-beaver-64-bit)
@@ -58,6 +59,19 @@ Care has been taken to write everything in a platform-independent way, but devel
 1. See table below for info on the Vagrants provided
 
 ## Vagrant Operating Systems
+
+### Ubuntu 24.04 LTS (Noble Numbat) 64-bit
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | ubuntu24 |
+| Vagrant box | [bento/ubuntu-24.04](https://app.vagrantup.com/bento/boxes/ubuntu-24.04) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up ubuntu24`
+2. Begin using the VM: `vagrant ssh ubuntu24`
 
 ### Ubuntu 22.04 LTS (Jammy Jellyfish) 64-bit
 
