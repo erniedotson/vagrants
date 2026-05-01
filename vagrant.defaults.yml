@@ -39,6 +39,16 @@ vagrants:
         memory: 2048
         videomemory: 256
         boot_timeout: 300
+    debian13:
+        cpus: 2
+        disable_audio: true
+        disksize: 64GB # NOTE: bento/debian-13 image does not auto-expand partition
+        enable_clipboard: false
+        enable_draganddrop: false
+        gui: false
+        memory: 3072
+        videomemory: 33
+        boot_timeout: 300
     debian10:
         cpus: 2
         disable_audio: true

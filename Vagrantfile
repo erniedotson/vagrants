@@ -266,6 +266,9 @@ VMCONFIGURATION = {
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
 }, {
+  name: 'debian13',
+  box: 'bento/debian-13',
+}, {
   name: 'rocky8',
   box: 'generic/rocky8',
   mounts: [
