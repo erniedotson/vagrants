@@ -18,20 +18,17 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Debian 13](#debian-13)
   * [Debian 12](#debian-12)
   * [Debian 11](#debian-11)
-  * [Debian 10](#debian-10)
   * [Rocky Linux 8](#rocky-linux-8)
   * [AlmaLinux 8](#almalinux-8)
-  * [CentOS 7](#centos-7)
-  * [CentOS 6](#centos-6)
   * [Windows 10](#windows-10)
   * [Windows 11](#windows-11)
 - [Customizing the vagrant VM](#customizing-the-vagrant-vm)
   * [Adding a Desktop GUI](#adding-a-desktop-gui)
-- [Recommended Plugins](#recommended-plugins)
-  * [Configuration System](#configuration-system)
+- [Configuration System](#configuration-system)
+- [SSH Configuration](#ssh-configuration)
+- [Plugins](#plugins)
+  * [Required Plugins](#required-plugins)
   * [Vagrant Multi-PuTTY plugin](#vagrant-multi-putty-plugin)
-  * [Vagrant Reload plugin](#vagrant-reload-plugin)
-  * [Vagrant VBGuest plugin](#vagrant-vbguest-plugin)
 - [Troubleshooting](#troubleshooting)
   * [Configuration Issues](#configuration-issues)
 - [References](#references)
@@ -98,53 +95,7 @@ Steps to get up and running:
 Steps to get up and running:
 
 1. Create the VM: `vagrant up ubuntu20`
-2. You may encounter an error similar to:
-
-    ```text
-    VirtualBox Guest Additions: Building the VirtualBox Guest Additions kernel
-    modules.  This may take a while.
-    VirtualBox Guest Additions: To build modules for other installed kernels, run
-    VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup <version>
-    VirtualBox Guest Additions: or
-    VirtualBox Guest Additions:   /sbin/rcvboxadd quicksetup all
-    VirtualBox Guest Additions: Kernel headers not found for target kernel
-    5.4.0-80-generic. Please install them and execute
-      /sbin/rcvboxadd setup
-    VirtualBox Guest Additions: Running kernel modules will not be replaced until
-    the system is restarted
-    Restarting VM to apply changes...
-    ==> ubuntu20: Attempting graceful shutdown of VM...
-    ==> ubuntu20: Booting VM...
-    ==> ubuntu20: Waiting for machine to boot. This may take a few minutes...
-    ==> ubuntu20: Machine booted and ready!
-    ==> ubuntu20: Checking for guest additions in VM...
-    ==> ubuntu20: Setting hostname...
-    ==> ubuntu20: Mounting shared folders...
-        ubuntu20: /vagrant => E:/work/my/vagrants
-    Vagrant was unable to mount VirtualBox shared folders. This is usually
-    because the filesystem "vboxsf" is not available. This filesystem is
-    made available via the VirtualBox Guest Additions and kernel module.
-    Please verify that these guest additions are properly installed in the
-    guest. This is not a bug in Vagrant and is usually caused by a faulty
-    Vagrant box. For context, the command attempted was:
-
-    mount -t vboxsf -o uid=1000,gid=1000,_netdev vagrant /vagrant
-
-    The error output from the command was:
-
-    : Invalid argument
-    ```
-
-    **CAUSE:** This is caused because by the *VirtualBox Guest Additions* are not present in the guest VM but they are required to share folders between the host and the guest. The *vagrant-vbguest* plugin attempts to install the *VirtualBox Guest Additions* but fails to do so because the necessary packages are not present on the guest VM.
-
-    **SOLUTION:** To resolve the issue you need to install the necessary packages.
-
-    ```bash
-    vagrant ssh ubuntu20 -c 'sudo apt-get -y install build-essential linux-headers-`uname -r` dkms'
-    vagrant reload ubuntu20 --provision
-    ```
-
-3. Begin using the VM: `vagrant ssh ubuntu20`
+2. Begin using the VM: `vagrant ssh ubuntu20`
 
 ### Ubuntu 18.04 LTS (Bionic Beaver) 64-bit
 
@@ -207,19 +158,6 @@ Steps to get up and running:
 1. Create the VM: `vagrant up debian11`
 2. Begin using the VM: `vagrant ssh debian11`
 
-### Debian 10
-
-| Name | Value |
-| ---- | ----- |
-| Vagrant name | debian10 |
-| Vagrant box | [generic/debian10](https://app.vagrantup.com/generic/boxes/debian10) |
-| Credentials (e.g. for GUI Login) | vagrant/vagrant |
-
-Steps to get up and running:
-
-1. Create the VM: `vagrant up debian10`
-2. Begin using the VM: `vagrant ssh debian10`
-
 ### Rocky Linux 8
 
 Rocky Linux is a 1:1 bug-for-bug compatible replacement for Red Hat Enterprise Linux (RHEL) 8.
@@ -249,97 +187,6 @@ Steps to get up and running:
 
 1. Create the VM: `vagrant up alma8`
 2. Begin using the VM: `vagrant ssh alma8`
-
-### CentOS 7
-
-| Name | Value |
-| ---- | ----- |
-| Vagrant name | centos7 |
-| Vagrant box | [centos/7](https://app.vagrantup.com/generic/boxes/centos7) |
-| Credentials (e.g. for GUI Login) | root/vagrant |
-
-1. Create the VM: `vagrant up centos7`
-2. You may encounter an error similar to:
-
-    ```text
-    ==> centos6: Mounting shared folders...
-        centos6: /vagrant => E:/work/my/vagrants
-    Vagrant was unable to mount VirtualBox shared folders. This is usually
-    because the filesystem "vboxsf" is not available. This filesystem is
-    made available via the VirtualBox Guest Additions and kernel module.
-    Please verify that these guest additions are properly installed in the
-    guest. This is not a bug in Vagrant and is usually caused by a faulty
-    Vagrant box. For context, the command attempted was:
-
-    mount -t vboxsf -o uid=500,gid=500,_netdev vagrant /vagrant
-
-    The error output from the command was:
-
-    /sbin/mount.vboxsf: mounting failed with the error: Invalid argument
-    ```
-
-    To resolve it (end prevent the libselinux-python error below) enter the following commands:
-
-    ```bash
-    vagrant ssh centos7 -c 'sudo yum update -y'
-    vagrant reload centos7 --provision
-    ```
-
-3. Begin using the VM: `vagrant ssh centos7`
-
-### CentOS 6
-
-| Name | Value |
-| ---- | ----- |
-| Vagrant name | centos6 |
-| Vagrant box | [generic/centos6](https://app.vagrantup.com/generic/boxes/centos6) |
-| Credentials (e.g. for GUI Login) | root/vagrant |
-
-The offical [centos/6](https://app.vagrantup.com/generic/boxes/centos6) box now redirects to [generic/centos6](https://app.vagrantup.com/generic/boxes/centos6).
-
-Steps to get up and running:
-
-1. Create the VM: `vagrant up centos6`
-2. You may encounter an error similar to:
-
-    ```text
-    ==> centos6: Mounting shared folders...
-        centos6: /vagrant => E:/work/my/vagrants
-    Vagrant was unable to mount VirtualBox shared folders. This is usually
-    because the filesystem "vboxsf" is not available. This filesystem is
-    made available via the VirtualBox Guest Additions and kernel module.
-    Please verify that these guest additions are properly installed in the
-    guest. This is not a bug in Vagrant and is usually caused by a faulty
-    Vagrant box. For context, the command attempted was:
-
-    mount -t vboxsf -o uid=500,gid=500,_netdev vagrant /vagrant
-
-    The error output from the command was:
-
-    /sbin/mount.vboxsf: mounting failed with the error: Invalid argument
-    ```
-
-    To resolve it (end prevent the libselinux-python error below) enter the following commands:
-
-    ```bash
-    vagrant ssh centos6 -c 'sudo yum update -y && sudo yum install -y libselinux-python'
-    vagrant reload centos6 --provision
-    ```
-
-3. You may encounter an error similar to:
-
-    ```text
-    fatal: [centos6]: FAILED! => {"changed": false, "msg": "Aborting, target uses selinux but python bindings (libselinux-python) aren't installed!"}
-    ```
-
-    To resolve it enter the following commands:
-
-    ```bash
-    vagrant ssh centos6 -c 'sudo yum update -y && sudo yum install -y libselinux-python'
-    vagrant reload centos6 --provision
-    ```
-
-4. Begin using the VM: `vagrant ssh centos6`
 
 ### Windows 10
 
@@ -409,9 +256,7 @@ Desktop GUI by running `vagrant provision <vagrant-name> --provision-with gui`
 
 Once that installs the Desktop GUI, it will likely take one more reboot for the GUI to be enabled: `vagrant reload <vagrant-name>`
 
-## Recommended Plugins
-
-### Configuration System
+## Configuration System
 
 This repository uses a built-in configuration system:
 
@@ -420,19 +265,24 @@ This repository uses a built-in configuration system:
 
 No setup required - the system works with sensible defaults immediately after cloning.
 
+## SSH Configuration
+
+After each `vagrant up`, a trigger automatically writes an SSH config entry to `~/.ssh/vagrants/<vm-name>.<parent-dir>.config` and prepends `Include ~/.ssh/vagrants/*` to `~/.ssh/config`. This allows connecting directly with `ssh <vm-name>.<parent-dir>` without using `vagrant ssh`.
+
+The config file is automatically removed when you run `vagrant destroy`.
+
+## Plugins
+
+### Required Plugins
+
+The following plugins are declared in the Vagrantfile and auto-installed on first `vagrant up`:
+
+- [vagrant-disksize](https://github.com/sprotheroe/vagrant-disksize) - Resize the disk of a Vagrant VM
+- [vagrant-reload](https://github.com/aidanns/vagrant-reload) - Reload a VM as a provisioning step
+
 ### Vagrant Multi-PuTTY plugin
 
 If you are on a Windows host, [Vagrant Multi-PuTTY plugin](https://github.com/nickryand/vagrant-multi-putty) is a must. It allows you to `vagrant putty` instead of `vagrant ssh`, opening a new PuTTY window.
-
-### Vagrant Reload plugin
-
-[Vagrant Reload plugin](https://github.com/aidanns/vagrant-reload) allows one to "Reload a VM as a provisioning step." I some cases I make use of this plugin in this Vagrantfile.
-
-### Vagrant VBGuest plugin
-
-[Vagrant VBGuest plugin](https://github.com/dotless-de/vagrant-vbguest) is handy to keep your guest VirtualBox guest additions in sync with your host.
-
-*TIP:* Make sure on your host that your Guest Additions Extension Pack version matches the version of Virtual Box installed, otherwise you may see strange behavior when attempting to boot a guest vagrant.
 
 ## Troubleshooting
 
@@ -449,6 +299,6 @@ If you are on a Windows host, [Vagrant Multi-PuTTY plugin](https://github.com/ni
 - [Vagrant](https://www.vagrantup.com/) - Development Environments Made Easy
 - [Vagrant Plugins](https://github.com/hashicorp/vagrant/wiki/Available-Vagrant-Plugins) - A list of Vagrant Plugins
 - [Vagrant Multi-PuTTY plugin](https://github.com/nickryand/vagrant-multi-putty) - This plugin allows you to use putty to ssh into VMs.
-- [Vagrant Reload plugin](https://github.com/aidanns/vagrant-reload) - "Reload a VM as a provisioning step."
-- [Vagrant VBGuest plugin](https://github.com/dotless-de/vagrant-vbguest) - automatically update VirtualBox guest additions if necessary
+- [vagrant-disksize](https://github.com/sprotheroe/vagrant-disksize) - Resize the disk of a Vagrant VM
+- [vagrant-reload](https://github.com/aidanns/vagrant-reload) - Reload a VM as a provisioning step
 - [VirtualBox](https://www.virtualbox.org) - VirtualBox is a general-purpose full virtualizer for x86 hardware

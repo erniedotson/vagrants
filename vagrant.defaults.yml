@@ -1,24 +1,4 @@
 vagrants:
-    centos6:
-        cpus: 1
-        disable_audio: true
-        disksize: 40GB
-        enable_clipboard: false
-        enable_draganddrop: false
-        gui: false
-        memory: 512
-        videomemory: 16
-        boot_timeout: 300
-    centos7:
-        cpus: 1
-        disable_audio: true
-        disksize: 40GB
-        enable_clipboard: false
-        enable_draganddrop: false
-        gui: false
-        memory: 512
-        videomemory: 16
-        boot_timeout: 300
     rocky8:
         cpus: 2
         disable_audio: true
@@ -49,16 +29,6 @@ vagrants:
         memory: 3072
         videomemory: 33
         boot_timeout: 300
-    debian10:
-        cpus: 2
-        disable_audio: true
-        disksize: 128GB # NOTE: generic/debian10 image does not auto-expand partition
-        enable_clipboard: false
-        enable_draganddrop: false
-        gui: false
-        memory: 2048
-        videomemory: 256
-        boot_timeout: 1800
     debian11:
         cpus: 2
         disable_audio: true

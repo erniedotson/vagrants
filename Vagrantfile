@@ -248,12 +248,6 @@ VMCONFIGURATION = {
   name: 'ubuntu16',
   box: 'ubuntu/xenial64',
 }, {
-  name: 'debian10',
-  box: 'generic/debian10',
-  mounts: [
-    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
-  ]
-}, {
   name: 'debian11',
   box: 'generic/debian11',
   mounts: [
@@ -277,18 +271,6 @@ VMCONFIGURATION = {
 }, {
   name: 'alma8',
   box: 'generic/alma8',
-  mounts: [
-    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
-  ]
-}, {
-  name: 'centos7',
-  box: 'centos/7',
-  mounts: [
-    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
-  ]
-}, {
-  name: 'centos6',
-  box: 'generic/centos6',
   mounts: [
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
@@ -317,7 +299,6 @@ Vagrant.configure("2") do |config|
   ##############################################################################
   VMCONFIGURATION.each do |vmconfig|
     config.vm.define "#{vmconfig[:name]}", autostart: false do |config|
-      # config.vbguest.auto_update = false
       config.vm.box = "#{vmconfig[:box]}"
       config.vm.hostname = "#{vmconfig[:name]}"
       config.disksize.size = get_vm_config(vmconfig[:name], 'disksize', '40GB')
