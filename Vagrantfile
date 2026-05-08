@@ -347,6 +347,12 @@ Vagrant.configure("2") do |config|
         ansible.galaxy_role_file = 'provisioning/requirements.yml'
         ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
       end
+      config.vm.provision "extendfs", type: "ansible_local", run: "never" do |ansible|
+        ansible.playbook = "provisioning/extendfs-playbook.yml"
+        ansible.galaxy_roles_path = '/home/vagrant/.ansible/roles/'
+        ansible.galaxy_role_file = 'provisioning/requirements.yml'
+        ansible.galaxy_command = "ansible-galaxy collection install -r %{role_file}"
+      end
 
       config.trigger.after :up do |trigger|
         trigger.on_error = :continue

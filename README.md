@@ -24,6 +24,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Windows 11](#windows-11)
 - [Customizing the vagrant VM](#customizing-the-vagrant-vm)
   * [Adding a Desktop GUI](#adding-a-desktop-gui)
+  * [Expanding the Disk Partition](#expanding-the-disk-partition)
 - [Configuration System](#configuration-system)
 - [SSH Configuration](#ssh-configuration)
 - [Plugins](#plugins)
@@ -255,6 +256,33 @@ Once you've made changes to the *vagrant.local.yml* file, you can install the
 Desktop GUI by running `vagrant provision <vagrant-name> --provision-with gui`
 
 Once that installs the Desktop GUI, it will likely take one more reboot for the GUI to be enabled: `vagrant reload <vagrant-name>`
+
+### Expanding the Disk Partition
+
+When you increase `disksize` in *vagrant.local.yml*, `vagrant-disksize` resizes the virtual disk file — but for `generic/*` and `bento/*` boxes the guest partition stays at its original size. Official `ubuntu/*` boxes handle this automatically via cloud-init and do not need the steps below.
+
+For all other Linux VMs (debian11, debian12, debian13, rocky8, alma8, ubuntu24) and Windows VMs, after changing `disksize` you must expand the partition inside the guest:
+
+```bash
+vagrant provision <vagrant-name> --provision-with extendfs
+```
+
+For Linux this runs an Ansible playbook that installs `growpart`, expands the root partition (handling both plain partitions and LVM), and resizes the filesystem (ext4 or xfs). For Windows it uses `diskpart` to extend the volume.
+
+Example workflow — doubling rocky8's disk:
+
+```yaml
+# vagrant.local.yml
+vagrants:
+    rocky8:
+        disksize: 256GB
+```
+
+```bash
+vagrant halt rocky8
+vagrant up rocky8          # vagrant-disksize resizes the .vmdk
+vagrant provision rocky8 --provision-with extendfs   # guest partition catches up
+```
 
 ## Configuration System
 

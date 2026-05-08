@@ -1,0 +1,105 @@
+---
+- name: Extend root filesystem to fill resized disk
+  hosts: all
+  tasks:
+
+  - name: Get root filesystem device and type
+    command: findmnt -n -o SOURCE,FSTYPE /
+    register: root_mount_info
+
+  - name: Set root device facts
+    set_fact:
+      root_device: "{{ root_mount_info.stdout.split()[0] }}"
+      root_fstype: "{{ root_mount_info.stdout.split()[1] }}"
+      is_lvm: "{{ root_mount_info.stdout.split()[0].startswith('/dev/mapper/') }}"
+
+  - name: Install growpart (Debian/Ubuntu)
+    become: true
+    package:
+      name: cloud-guest-utils
+      state: present
+    when: ansible_os_family == "Debian"
+
+  - name: Install growpart and xfsprogs (RHEL-family)
+    become: true
+    yum:
+      name:
+        - cloud-utils-growpart
+        - xfsprogs
+      state: present
+    when: ansible_os_family == "RedHat"
+
+  - name: Get LVM physical volume device
+    become: true
+    shell: >
+      vg=$(lvs --noheadings -o vg_name {{ root_device }} | tr -d ' ');
+      pvs --noheadings -o pv_name -S vg_name=$vg | tr -d ' '
+    register: lvm_pv_result
+    when: is_lvm | bool
+
+  - name: Set disk and partition variables (LVM)
+    set_fact:
+      phys_device: "{{ lvm_pv_result.stdout }}"
+      disk_device: "{{ lvm_pv_result.stdout | regex_replace('[0-9]+$', '') }}"
+      partition_num: "{{ lvm_pv_result.stdout | regex_search('[0-9]+$') }}"
+    when: is_lvm | bool
+
+  - name: Set disk and partition variables (non-LVM)
+    set_fact:
+      disk_device: "{{ root_device | regex_replace('[0-9]+$', '') }}"
+      partition_num: "{{ root_device | regex_search('[0-9]+$') }}"
+    when: not (is_lvm | bool)
+
+  - name: Detect partition table type
+    become: true
+    command: "blkid -o value -s PTTYPE {{ disk_device }}"
+    register: pttype_result
+    changed_when: false
+
+  - name: Grow MBR extended partition before logical partition
+    become: true
+    command: "growpart {{ disk_device }} 2"
+    register: growpart_ext_result
+    failed_when: growpart_ext_result.rc not in [0, 2]
+    changed_when: growpart_ext_result.rc == 0
+    when: pttype_result.stdout == 'dos' and (partition_num | int) > 4
+
+  - name: Grow partition to fill disk
+    become: true
+    command: "growpart {{ disk_device }} {{ partition_num }}"
+    register: growpart_result
+    failed_when: growpart_result.rc not in [0, 2]
+    changed_when: growpart_result.rc == 0
+
+  - name: Re-read partition table so kernel sees grown partition
+    become: true
+    command: "partx -u {{ disk_device }}"
+    when: is_lvm | bool
+
+  - name: Wait for udev to process partition table changes
+    become: true
+    command: udevadm settle
+    when: is_lvm | bool
+
+  - name: Resize LVM physical volume
+    become: true
+    command: "pvresize {{ phys_device }}"
+    when: is_lvm | bool
+
+  - name: Extend LVM logical volume to use all free space
+    become: true
+    command: "lvextend -l +100%FREE {{ root_device }}"
+    register: lvextend_result
+    failed_when: lvextend_result.rc not in [0, 5]
+    changed_when: lvextend_result.rc == 0
+    when: is_lvm | bool
+
+  - name: Resize ext4 filesystem
+    become: true
+    command: "resize2fs {{ root_device }}"
+    when: root_fstype in ['ext4', 'ext3', 'ext2']
+
+  - name: Resize xfs filesystem
+    become: true
+    command: "xfs_growfs /"
+    when: root_fstype == 'xfs'
