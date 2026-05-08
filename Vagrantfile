@@ -61,44 +61,6 @@ def get_vm_config(vm_name, key, default = nil)
 end
 
 ################################################################################
-# Purpose    : Download a file from the web
-# Paramaters : url - the URL to download
-#              path - the path/file to save as
-# Returns    : n/a
-################################################################################
-def download(url, path)
-  case io = open(url)
-  when StringIO then File.open(path, 'w') { |f| f.write(io) }
-  when Tempfile then io.close; FileUtils.mv(io.path, path)
-  end
-end
-
-################################################################################
-# Purpose    : Extract a zip file
-# Paramaters : file - the zip file to extract
-#              destination - the destination to extract to
-# Returns    : n/a
-################################################################################
-def extract_zip(file, destination)
-  FileUtils.mkdir_p(destination)
-
-  Zip::File.open(file) do |zip_file|
-    zip_file.each do |f|
-      fpath = File.join(destination, f.name)
-      zip_file.extract(f, fpath) unless File.exist?(fpath)
-    end
-  end
-end
-
-################################################################################
-# Function to check whether VM was already provisioned
-################################################################################
-def provisioned?(vm_name='default', provider='virtualbox')
-  File.exist?(".vagrant/machines/#{vm_name}/#{provider}/action_provision")
-end
-#Usage:  config.ssh.username = 'custom_username' if provisioned?
-
-################################################################################
 # Function to find path to Vagrantfile
 ################################################################################
 def getVagrantFilePath()

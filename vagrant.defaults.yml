@@ -49,16 +49,6 @@ vagrants:
         memory: 2048
         videomemory: 256
         boot_timeout: 1800
-    ubuntu14:
-        cpus: 1
-        disable_audio: true
-        disksize: 40GB
-        enable_clipboard: false
-        enable_draganddrop: false
-        gui: false
-        memory: 512
-        videomemory: 12
-        boot_timeout: 300
     ubuntu16:
         cpus: 2
         disable_audio: true
