@@ -27,6 +27,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Expanding the Disk Partition](#expanding-the-disk-partition)
 - [Configuration System](#configuration-system)
 - [SSH Configuration](#ssh-configuration)
+- [Windows SSH Agent Setup](#windows-ssh-agent-setup)
 - [Plugins](#plugins)
   * [Required Plugins](#required-plugins)
   * [Vagrant Multi-PuTTY plugin](#vagrant-multi-putty-plugin)
@@ -298,6 +299,38 @@ No setup required - the system works with sensible defaults immediately after cl
 After each `vagrant up`, a trigger automatically writes an SSH config entry to `~/.ssh/vagrants/<vm-name>.<parent-dir>.config` and prepends `Include ~/.ssh/vagrants/*` to `~/.ssh/config`. This allows connecting directly with `ssh <vm-name>.<parent-dir>` without using `vagrant ssh`.
 
 The config file is automatically removed when you run `vagrant destroy`.
+
+## Windows SSH Agent Setup
+
+On Windows, Git Bash and PowerShell/cmd can resolve to different `ssh.exe` binaries with separate agents, causing intermittent SSH failures during `vagrant up` provisioning and broken agent forwarding in `vagrant ssh` sessions. The following one-time setup unifies all terminals onto the Windows native OpenSSH agent so keys loaded once are available everywhere.
+
+The following one-time setup is required on Windows.
+
+**1. Enable the Windows native SSH agent service** (PowerShell as Administrator, run once):
+
+```powershell
+Set-Service ssh-agent -StartupType Automatic
+Start-Service ssh-agent
+```
+
+**2. Set PATH order so Windows native SSH comes first** — open *Edit environment variables for your account* from the Start menu, select **Path** in User variables, and move `C:\Windows\System32\OpenSSH` above any Git entries (e.g. `C:\Program Files\Git\usr\bin`, `C:\Program Files\Git\cmd`). Do the same in System variables if Git appears there too. This ensures cmd.exe and PowerShell use the native `ssh.exe` and `ssh-add.exe`, which can communicate with the native agent.
+
+**3. Point Git Bash at the Windows native agent** — add to `~/.bashrc`:
+
+```bash
+export PATH="/c/Windows/System32/OpenSSH:$PATH"
+export SSH_AUTH_SOCK="//./pipe/openssh-ssh-agent"
+```
+
+The PATH line ensures Git Bash also resolves to the native SSH binaries (which understand the Windows named pipe), and `SSH_AUTH_SOCK` points them at the running agent service.
+
+**4. Add your keys to the unified agent** (once per reboot, or add to your shell profile):
+
+```bash
+ssh-add ~/.ssh/id_rsa   # adjust path to your key(s)
+```
+
+After completing setup, `ssh-add -L` from any terminal (Git Bash, cmd, PowerShell) should list your loaded keys. Inside a `vagrant ssh` session, `ssh-add -l` should show the same keys forwarded from the host.
 
 ## Plugins
 
