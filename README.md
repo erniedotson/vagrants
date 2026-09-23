@@ -10,6 +10,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Install pre-requisites](#install-pre-requisites)
   * [Quick Start](#quick-start)
 - [Vagrant Operating Systems](#vagrant-operating-systems)
+  * [Ubuntu 26.04 LTS (Resolute Raccoon) 64-bit](#ubuntu-2604-lts-resolute-raccoon-64-bit)
   * [Ubuntu 24.04 LTS (Noble Numbat) 64-bit](#ubuntu-2404-lts-noble-numbat-64-bit)
   * [Ubuntu 22.04 LTS (Jammy Jellyfish) 64-bit](#ubuntu-2204-lts-jammy-jellyfish-64-bit)
   * [Ubuntu 20.04 LTS (Focal Fossa) 64-bit](#ubuntu-2004-lts-focal-fossa-64-bit)
@@ -58,6 +59,19 @@ Care has been taken to write everything in a platform-independent way, but devel
 1. See table below for info on the Vagrants provided
 
 ## Vagrant Operating Systems
+
+### Ubuntu 26.04 LTS (Resolute Raccoon) 64-bit
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | ubuntu26 |
+| Vagrant box | [bento/ubuntu-26.04](https://app.vagrantup.com/bento/boxes/ubuntu-26.04) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up ubuntu26`
+2. Begin using the VM: `vagrant ssh ubuntu26`
 
 ### Ubuntu 24.04 LTS (Noble Numbat) 64-bit
 
@@ -248,7 +262,7 @@ Once that installs the Desktop GUI, it will likely take one more reboot for the 
 
 When you increase `disksize` in *vagrant.local.yml*, `vagrant-disksize` resizes the virtual disk file — but for `generic/*` and `bento/*` boxes the guest partition stays at its original size. Official `ubuntu/*` boxes handle this automatically via cloud-init and do not need the steps below.
 
-For all other Linux VMs (debian12, debian13, rocky8, alma8, ubuntu24) and Windows VMs, after changing `disksize` you must expand the partition inside the guest:
+For all other Linux VMs (debian12, debian13, rocky8, alma8, ubuntu24, ubuntu26) and Windows VMs, after changing `disksize` you must expand the partition inside the guest:
 
 ```bash
 vagrant provision <vagrant-name> --provision-with extendfs

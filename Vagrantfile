@@ -195,6 +195,9 @@ vagrantFilePath = getVagrantFilePath
 # Refrence: https://github.com/martinandersson/dev-mini/blob/master/Vagrantfile
 
 VMCONFIGURATION = {
+  name: 'ubuntu26',
+  box: 'bento/ubuntu-26.04',
+}, {
   name: 'ubuntu24',
   box: 'bento/ubuntu-24.04',
 }, {
