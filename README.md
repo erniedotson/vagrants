@@ -19,6 +19,7 @@ I'm a big fan of using [Vagrant VMs](https://www.vagrantup.com/) for development
   * [Debian 13](#debian-13)
   * [Debian 12](#debian-12)
   * [Rocky Linux 8](#rocky-linux-8)
+  * [Rocky Linux 9](#rocky-linux-9)
   * [AlmaLinux 8](#almalinux-8)
   * [Windows 10](#windows-10)
   * [Windows 11](#windows-11)
@@ -175,6 +176,21 @@ Steps to get up and running:
 1. Create the VM: `vagrant up rocky8`
 2. Begin using the VM: `vagrant ssh rocky8`
 
+### Rocky Linux 9
+
+Rocky Linux is a 1:1 bug-for-bug compatible replacement for Red Hat Enterprise Linux (RHEL) 9.
+
+| Name | Value |
+| ---- | ----- |
+| Vagrant name | rocky9 |
+| Vagrant box | [bento/rockylinux-9](https://app.vagrantup.com/bento/boxes/rockylinux-9) |
+| Credentials (e.g. for GUI Login) | vagrant/vagrant |
+
+Steps to get up and running:
+
+1. Create the VM: `vagrant up rocky9`
+2. Begin using the VM: `vagrant ssh rocky9`
+
 ### AlmaLinux 8
 
 AlmaLinux is an ABI-compatible replacement for Red Hat Enterprise Linux (RHEL) 8.
@@ -262,7 +278,7 @@ Once that installs the Desktop GUI, it will likely take one more reboot for the 
 
 When you increase `disksize` in *vagrant.local.yml*, `vagrant-disksize` resizes the virtual disk file — but for `generic/*` and `bento/*` boxes the guest partition stays at its original size. Official `ubuntu/*` boxes handle this automatically via cloud-init and do not need the steps below.
 
-For all other Linux VMs (debian12, debian13, rocky8, alma8, ubuntu24, ubuntu26) and Windows VMs, after changing `disksize` you must expand the partition inside the guest:
+For all other Linux VMs (debian12, debian13, rocky8, rocky9, alma8, ubuntu24, ubuntu26) and Windows VMs, after changing `disksize` you must expand the partition inside the guest:
 
 ```bash
 vagrant provision <vagrant-name> --provision-with extendfs

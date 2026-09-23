@@ -228,6 +228,9 @@ VMCONFIGURATION = {
     { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
   ]
 }, {
+  name: 'rocky9',
+  box: 'bento/rockylinux-9',
+}, {
   name: 'alma8',
   box: 'generic/alma8',
   mounts: [
