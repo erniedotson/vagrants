@@ -210,12 +210,6 @@ VMCONFIGURATION = {
   name: 'ubuntu16',
   box: 'ubuntu/xenial64',
 }, {
-  name: 'debian11',
-  box: 'generic/debian11',
-  mounts: [
-    { hostPath: ".", guestPath: "/vagrant", type: "virtualbox" }
-  ]
-},{
   name: 'debian12',
   box: 'generic/debian12',
   mounts: [
